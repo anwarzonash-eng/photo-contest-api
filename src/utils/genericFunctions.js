@@ -1,13 +1,18 @@
 import bcrypt from 'bcrypt'
 const CryptoJS = require("crypto-js");
 import { sequelize } from './database';
-import { HuntScoreModel, UserModel, GalleryPhotoModel, PersonalWebsiteModel, PersonalPhotoModel } from '../models';
+import { HuntScoreModel, UserModel, GalleryPhotoModel, PersonalWebsiteModel, PersonalPhotoModel,
+        AdminNotificationTemplateModel, UserNotificationStatusModel
+    } 
+from '../models';
 import { transactionCommit, transactionRollback } from './transaction';
 const uploadPhoto = require("./aws/s3");
 import schedule from 'node-schedule';
 import { Op } from 'sequelize';
 import { QueryTypes } from 'sequelize';
 import {Env} from '../config';
+import moment from 'moment';
+
 
 export async function hashpassword(password) {
     try{
@@ -677,4 +682,143 @@ export async function deleteInActiveUserPhotos(eventId, photoType = 'uploaded_ph
     }
 }
 
+
+
+
+export async function getActiveAdminNotifications(userId, offset = 0, limit = 10) {
+    try{
+
+        const sender = await UserModel.findOne({
+            where: { email: 'admin@example.com'},
+            attributes: ["id", "compressedProfilePic", "compressedProfileId"],
+            raw: true
+        });
+                    
+            const user = await UserModel.findOne({
+                where: { id: userId },
+                attributes: ["camera_brand", "photograper_type", "photo_desire_ratio", "genres_list", "photo_assistance", 
+                    "meet_for", "strengths", 
+                 ], 
+            });
+
+            const now = moment.utc().toDate();
+
+            const templates = await AdminNotificationTemplateModel.findAll({
+                where: {
+                    isActive: true,
+                    postedAt: { 
+                        [Op.lte]: now 
+                    },
+                    [Op.or]: [
+                        { expiredAt: null },
+                        { 
+                            expiredAt: { 
+                                [Op.gte]: now 
+                            } 
+                        },
+                    ],
+                },
+                order: [['postedAt', 'DESC']],
+                raw: true
+            });
+
+            const statuses = await UserNotificationStatusModel.findAll({
+                where: { user_id: userId },
+            });
+            const statusMap = new Map(statuses.map((s) => [s.template_id, s]));
+
+            const eligibleTemplates = templates.filter((template) => {
+                const conditions = template.target_conditions || [];
+                if (!conditions.length) return true; 
+
+                return conditions.some((cond) => {
+                    const { type, value } = cond;
+                    if (!type || !value) return false;
+
+                     let userVal = user[type];
+
+                    // Handle comma-separated values like genres_list
+                    if (typeof userVal === "string" && userVal.includes(",")) {
+                        userVal = userVal.split(",").map(v => v.trim());
+                    }
+
+                    if (Array.isArray(value)) {
+                        // If userVal is array → check if ANY of user's values appear in condition array
+                        if (Array.isArray(userVal)) {
+                            return userVal.some(uVal => value.map(String).includes(String(uVal)));
+                        }
+                        // Otherwise normal includes
+                        return value.map(String).includes(String(userVal));
+                    }
+
+                    return String(userVal) === String(value);
+
+                });
+            });
+
+
+        const processedTemplates = eligibleTemplates.map((template) => {
+            const userStatus = statusMap.get(template.id);
+            const remaining = userStatus?.viewed_count ?? 0; // 🔹 was template.shown_no_of_times before
+
+            return {
+                ...template,
+                viewed_count: remaining,
+            };
+        });
+
+
+        const newAdminNotifs = processedTemplates
+        .filter((t) => {
+            const shownLimit = t.shownNoOfTimes ?? 1; 
+            const userViewed = t.viewed_count ?? 0;
+            return userViewed < shownLimit; // 🔹 still eligible as "new"
+        });
+
+            
+        const newAdminIds = newAdminNotifs.map(n => n.id); // 🔹 IDs to exclude from regular
+        const regularAdminNotifs = processedTemplates
+            .filter(t => !newAdminIds.includes(t.id)) // exclude new admin
+            .filter(t => {
+                const shownLimit = t.shownNoOfTimes ?? 1;
+                const userViewed = t.viewed_count ?? 0;
+                return userViewed >= shownLimit;
+            });
+      
+            
+          
+
+            const formatNotif = (notif) => ({
+                id: notif.id,
+                message: {
+                    id: sender?.id,                          
+                    name: 'Ken from Photo Contest',
+                    message: notif.message,       
+                    text: 'admin_notification',      
+                    profile_pic: sender?.compressedProfilePic,
+                    sender_id: sender?.id,
+                    compressedProfileId: sender?.compressedProfileId,
+                    receiver_id: userId,
+                    photo_url: notif?.compressedImageUrl,
+                    compressedImageId: notif?.compressedImageId,
+                    btnLabel: notif?.btnLabel,
+                    btnUrl: notif?.btnUrl,
+                    notification_createdAt: notif.postedAt
+                },
+                createdAt: notif.postedAt,
+                updatedAt: notif.updatedAt,
+                template_id: notif.id,
+                notification_type: 'admin_notification',
+            });
+
+             return {
+                newAdminNotifs: newAdminNotifs.map(formatNotif),
+                regularAdminNotifs: regularAdminNotifs.map(formatNotif),
+            };
+
+    }
+    catch(err){
+        throw err;
+    }
+}
 

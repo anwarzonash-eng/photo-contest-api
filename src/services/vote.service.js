@@ -13,6 +13,21 @@ export class voteService extends baseService {
 
     async performVote(req) {
         try{
+
+            if(req.body?.batchId){
+                await this._tempUserActionsModel.create({
+                    batch_id: req.body.batchId,
+                    data: {
+                        photoID: req.body.photoID,  
+                    },
+                    action_type: 'upvote_photo'
+                });
+                return {
+                    response: 'Vote action queued in batch',
+                };
+            }
+
+
             let response = '';  let notificationId;
             const userId = await this._photoModel.findOne({
                 where:{

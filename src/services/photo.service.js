@@ -1415,112 +1415,184 @@ export class photoService extends baseService {
                 },             
               });
           }
-        
-          let query=`Select _photos."boostedWeeklyPhoto",
-          _photos."boostedTime", _photos.id, _photos.user_id, _photos."photo_url" as "original_photo_url", _photos."compressedImageId",  _photos."compressedImageUrl" as "photo_url", _photos."createdAt" as 
-          photo_posted_date, _photos.description, (SELECT json_object_agg(feedback_type, feedback_type) from 
-          unnest(string_to_array(_photos.feedback_type, ',')) feedback_type) AS feedback_type, _photos.metadata, 
-          _users.name, 
-          CASE 
-          WHEN LENGTH(_users."compressedProfilePic") > 0 THEN "compressedProfilePic" 
-          ELSE _users.photo_url
-          END AS user_photo_url,
-          _users."compressedProfileId", _users.state, _users.country,
-          (SELECT EXISTS( SELECT * FROM "Votes" v WHERE photo_id = _photos.id and v.user_id=:userId and v."is_vote"=true) ) AS is_vote,
-          (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = :userId and f.follower_id=_photos.user_id and f."is_active"=true) ) AS is_follow,  
-          (SELECT count(*) FROM "Votes" as _votes JOIN "Users" _user on _user.id=_votes.user_id
-          WHERE _votes.photo_id = _photos.id and _user."isBlocked"=false and _votes."is_vote"=true) AS total_votes, 
-          (SELECT COUNT(*) FROM "Comments" JOIN "Users" ON "Comments".User_ID = "Users".ID
-          WHERE photo_id = _photos.id AND "Comments"."isDeleted" = false AND "Users"."isBlocked" = false 
-          and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000' 
-          )as total_comments,  
-          ( Select jsonb_agg(jsonb_build_object('id', id, 'user_id', user_id, 'user_profile_pic', user_profile_pic,
-          'username', username, 'photo_id', photo_id, 'comment_text', comment_text, 
-          'createdAt', "createdAt", 'updatedAt', "updatedAt", 'total_replies', total_replies, 'is_vote', is_vote, 
-          'total_votes', total_votes, 'is_follow', is_follow,
-          'compressedProfileId', "compressedProfileId"))  
-          from
-           (SELECT "Comments".id, user_id, 
-           photo_id, 
-           comment_text, "Comments"."createdAt", "Comments"."updatedAt", "Users".name AS username, 
-           CASE 
-            WHEN LENGTH("compressedProfilePic") > 0 THEN "compressedProfilePic" 
-            ELSE photo_url
-            END AS user_profile_pic, "compressedProfileId",
-           (SELECT COUNT(*) FROM "Comments" c join "Users" u on u.id= c.user_id
-           WHERE c.top_comment_id = "Comments".id and c."photo_id"= photo_id 
-           AND c."isDeleted" = false and u."isBlocked"=false
-          ) as total_replies,
-         (SELECT EXISTS( SELECT * FROM "like_comments" v WHERE comment_id = "Comments".id and v.user_id='${req.userData._id}') ) as is_vote,
-         (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = '${req.userData._id}' 
-         and f.follower_id= "Comments".User_ID and f."is_active"=true) AS is_follow),
-         (SELECT count(*) FROM "like_comments" as _votes JOIN "Users" _user on _user.id=_votes.user_id
-         WHERE _votes.comment_id = "Comments".id and _user."isBlocked"=false) AS total_votes
-         FROM "Comments"
-         JOIN "Users" ON "Comments".User_ID = "Users".ID
-         WHERE "Comments".photo_id = _photos.id and 
-         "Comments"."isDeleted"=false and "Users"."isBlocked"=false
-         and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000'
-         ORDER BY "Comments"."createdAt" DESC, "Comments".id
-         LIMIT 1) as comments) as comments                       
-        from  "Photos" as _photos join "Users" as _users on _photos.user_id = _users.id 
-        ${req.body.sortingType == 'new_to_you' ? `LEFT JOIN "Views" v ON _photos.id = v.photo_id AND v.user_id = '${req.userData._id}'
-        LEFT JOIN "Votes" vt ON _photos.id = vt.photo_id AND vt.user_id = '${req.userData._id}' AND vt.is_vote = true
-        LEFT JOIN "Comments" c ON _photos.id = c.photo_id AND c.user_id = '${req.userData._id}'`:''}
-         ${req.body.sortingType == 'participating_members' ? `where _users."isPaid" = true`:''}
-        ${req.body.sortingType == 'by_recent_users' ? 'JOIN ( SELECT user_id, MAX("createdAt") AS max_createdAt FROM "Photos" where "isDeleted"=false and "isQueued"=false GROUP BY user_id) AS latest_photos ON _photos.user_id = latest_photos.user_id AND _photos."createdAt" = latest_photos.max_createdAt':''}
-        ${req.body.sortingType == 'this_week' ? `where date_trunc('week', _photos."createdAt"::timestamp AT TIME ZONE 'America/New_York') 
-        = date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York')`: ''}
-        ${req.body.sortingType == 'last_week' ? `where _photos."createdAt"::timestamp >= date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York') - interval '1 week' 
-        and _photos."createdAt"::timestamp <= date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York')`: ''}
-        ${req.body.sortingType == 'following' ? `inner join "Followers" f on f."follower_id"= _users."id"
-        where f.user_id='${req.userData._id}' and _photos."user_id"= f."follower_id" and f."is_active"=true`: ''}  
-        ${req.body.userType == 'by_user' ?'where _photos.user_id = :authId': ''}
-        ${req.body.sortingType == 'new_to_you' ? `where v.id IS NULL AND vt.user_id IS NULL AND c.user_id IS NULL AND _photos."user_id" != '${req.userData._id}'`:''}
-        and _users."isBlocked"=false and _photos."isDeleted" =false and _photos."isQueued"=false
-         ${isRehuntedPhotoExist ? `and _photos.id != '${req.body.rehuntedPhoto['id']}'`: ''}
-        order by  
-          ${req.body.sortingType === 'following' || req.body.sortingType === 'new_to_you'
-          ||  req.body.sortingType === 'participating_members' ? `_photos."createdAt" DESC,  _photos.id`:''}
 
-          ${req.body.sortingType === 'by_recent_photos' ? `
-            CASE 
+          let query;
+          if(req.body.sortingType == 'coming_next_photos'){
+                moment_timezone.updateLocale('en', {
+                  week: {
+                    dow: 1 // Monday as the start of the week
+                  }
+                });
 
-          WHEN _photos.user_id = '${req.userData._id}' and
-           (SELECT "lastVisitTime" FROM "Users" WHERE id = '${req.userData._id}')
-           < (SELECT MAX("createdAt") FROM "Photos" WHERE user_id = '${req.userData._id}' 
-           and "isDeleted" = false
-           and "isQueued"= false)
-          Then 2    
+                // Get the start of the next Monday
+                const nextMondayDate = moment_timezone.tz('America/New_York').startOf('week').add(1, 'weeks').format('YYYY-MM-DD');
+                
+                // Get the start of the next next Monday
+                const nextNextMondayDate = moment_timezone.tz('America/New_York').startOf('week').add(2, 'weeks').format('YYYY-MM-DD');
 
-            WHEN (
-                    SELECT "lastVisitTime"
-                    FROM "Users"
-                    WHERE id = '${req.userData._id}'
-                  ) IS NOT NULL 
-                  AND _photos."boostedWeeklyPhoto" = 'Rehunted'
-                  AND _photos."createdAt" <  (SELECT "lastVisitTime" FROM "Users" WHERE id = '${req.userData._id}')
-                    AND EXISTS (
-            SELECT 1
-            FROM "Views"
-            WHERE user_id = '${req.userData._id}'
-              AND photo_id = _photos.id
-              AND "boostedView" = false
-          )
-            AND NOT EXISTS (
-              SELECT 1 FROM "Votes" WHERE user_id = '${req.userData._id}' AND photo_id = _photos.id
-            )
-          THEN 1
-
-          ELSE 0
-        END DESC,
-        _photos."createdAt" DESC` : ''}
-
-        ${req.body.sortingType === 'by_recent_users' ? '_users."createdAt" DESC,  _photos.id':''}
-        ${req.body.sortingType === 'leader_board' || req.body.sortingType === 'last_week'
-        || req.body.sortingType === 'this_week' ? 'total_votes DESC, _photos.id' : ''}
-        limit 10 offSet :offSet`;
            
+                
+                query = `Select _photos.id, _photos."user_id", _user."name", _photos."photo_url" as "original_photo_url", 
+                  _photos."compressedImageId", _photos."compressedImageUrl" as "photo_url", _photos."createdAt" AS photo_posted_date, 
+                  _photos."comingNextAt",
+                  _photos.description, (SELECT json_object_agg(feedback_type, feedback_type) from 
+                  unnest(string_to_array(_photos.feedback_type, ',')) feedback_type) AS feedback_type, _photos.metadata, 
+                  CASE WHEN LENGTH(_user."compressedProfilePic") > 0 THEN "compressedProfilePic" ELSE _user.photo_url 
+                      END AS user_photo_url, 
+                  _user."compressedProfileId", _user.state,
+                  (SELECT EXISTS( SELECT * FROM "Votes" v WHERE photo_id = _photos.id and v.user_id= '${req.userData._id}' and v."is_vote"=true) ) AS is_vote,
+                  (SELECT EXISTS( SELECT * FROM "photo_notifications" n WHERE photo_id = _photos.id and n.user_id= '${req.userData._id}' and n."is_notify"=true) ) AS is_notify,
+                  (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = '${req.userData._id}' and f.follower_id=_photos.user_id and f."is_active"=true) ) AS is_follow,  
+                  (SELECT count(*) FROM "Votes" as _votes JOIN "Users" _user on _user.id=_votes.user_id
+                      WHERE _votes.photo_id = _photos.id and _user."isBlocked"=false and _votes."is_vote"=true) AS total_votes, 
+                  (SELECT COUNT(*) FROM "Comments" JOIN "Users" ON "Comments".User_ID = "Users".ID
+                      WHERE photo_id = _photos.id AND "Comments"."isDeleted" = false AND "Users"."isBlocked" = false 
+                      and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000' 
+                  ) as total_comments,  
+                  ( Select jsonb_agg(jsonb_build_object('id', id, 'user_id', user_id, 'user_profile_pic', user_profile_pic,
+                  'username', username, 'photo_id', photo_id, 'comment_text', comment_text, 
+                  'createdAt', "createdAt", 'updatedAt', "updatedAt", 'total_replies', total_replies, 'is_vote', is_vote, 
+                  'total_votes', total_votes, 'is_follow', is_follow,
+                  'compressedProfileId', "compressedProfileId"))  
+                  from
+                        (SELECT "Comments".id, user_id, photo_id, comment_text, "Comments"."createdAt", "Comments"."updatedAt", 
+                          "Users".name AS username, CASE WHEN LENGTH("compressedProfilePic") > 0 THEN "compressedProfilePic" 
+                            ELSE photo_url END AS user_profile_pic, "compressedProfileId",
+                        (SELECT COUNT(*) FROM "Comments" c join "Users" u on u.id= c.user_id
+                            WHERE c.top_comment_id = "Comments".id and c."photo_id"= photo_id 
+                            AND c."isDeleted" = false and u."isBlocked"=false
+                        ) as total_replies,
+                      (SELECT EXISTS( SELECT * FROM "like_comments" v WHERE comment_id = "Comments".id and v.user_id='${req.userData._id}') ) as is_vote,
+                      (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = '${req.userData._id}' 
+                      and f.follower_id= "Comments".User_ID and f."is_active"=true) AS is_follow),
+                      (SELECT count(*) FROM "like_comments" as _votes JOIN "Users" _user on _user.id=_votes.user_id
+                        WHERE _votes.comment_id = "Comments".id and _user."isBlocked"=false
+                      ) AS total_votes
+                      FROM "Comments" JOIN "Users" ON "Comments".User_ID = "Users".ID
+                      WHERE "Comments".photo_id = _photos.id and 
+                      "Comments"."isDeleted"=false and "Users"."isBlocked"=false
+                      and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000'
+                      ORDER BY "Comments"."createdAt" DESC, "Comments".id
+                      LIMIT 1) as comments
+                  ) as comments  
+                  FROM "Photos" _photos join "Users" _user on _user.id = _photos.user_id 
+                      WHERE _user."isBlocked"= false and _photos."isDeleted"=false and _photos."isQueued"= true 
+                      and _photos."isComingNext"= true
+                      AND date(_photos."createdAt") >= '${nextMondayDate}' 
+                      AND date(_photos."createdAt") < '${nextNextMondayDate}' 
+                      and ((_photos."isFreezed" IS NULL) OR (_photos."isFreezed" = false))
+                  order by _photos."comingNextAt" DESC, _photos.id
+                  limit 10 offSet :offSet`;
+          }
+          else{
+              
+                query=`Select _photos."boostedWeeklyPhoto",
+                _photos."boostedTime", _photos.id, _photos.user_id, _photos."photo_url" as "original_photo_url", _photos."compressedImageId",  _photos."compressedImageUrl" as "photo_url", _photos."createdAt" as 
+                photo_posted_date, _photos.description, (SELECT json_object_agg(feedback_type, feedback_type) from 
+                unnest(string_to_array(_photos.feedback_type, ',')) feedback_type) AS feedback_type, _photos.metadata, 
+                _users.name, 
+                CASE 
+                WHEN LENGTH(_users."compressedProfilePic") > 0 THEN "compressedProfilePic" 
+                ELSE _users.photo_url
+                END AS user_photo_url,
+                _users."compressedProfileId", _users.state, _users.country,
+                (SELECT EXISTS( SELECT * FROM "Votes" v WHERE photo_id = _photos.id and v.user_id=:userId and v."is_vote"=true) ) AS is_vote,
+                (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = :userId and f.follower_id=_photos.user_id and f."is_active"=true) ) AS is_follow,  
+                (SELECT count(*) FROM "Votes" as _votes JOIN "Users" _user on _user.id=_votes.user_id
+                WHERE _votes.photo_id = _photos.id and _user."isBlocked"=false and _votes."is_vote"=true) AS total_votes, 
+                (SELECT COUNT(*) FROM "Comments" JOIN "Users" ON "Comments".User_ID = "Users".ID
+                WHERE photo_id = _photos.id AND "Comments"."isDeleted" = false AND "Users"."isBlocked" = false 
+                and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000' 
+                )as total_comments,  
+                ( Select jsonb_agg(jsonb_build_object('id', id, 'user_id', user_id, 'user_profile_pic', user_profile_pic,
+                'username', username, 'photo_id', photo_id, 'comment_text', comment_text, 
+                'createdAt', "createdAt", 'updatedAt', "updatedAt", 'total_replies', total_replies, 'is_vote', is_vote, 
+                'total_votes', total_votes, 'is_follow', is_follow,
+                'compressedProfileId', "compressedProfileId"))  
+                from
+                (SELECT "Comments".id, user_id, 
+                photo_id, 
+                comment_text, "Comments"."createdAt", "Comments"."updatedAt", "Users".name AS username, 
+                CASE 
+                  WHEN LENGTH("compressedProfilePic") > 0 THEN "compressedProfilePic" 
+                  ELSE photo_url
+                  END AS user_profile_pic, "compressedProfileId",
+                (SELECT COUNT(*) FROM "Comments" c join "Users" u on u.id= c.user_id
+                WHERE c.top_comment_id = "Comments".id and c."photo_id"= photo_id 
+                AND c."isDeleted" = false and u."isBlocked"=false
+                ) as total_replies,
+              (SELECT EXISTS( SELECT * FROM "like_comments" v WHERE comment_id = "Comments".id and v.user_id='${req.userData._id}') ) as is_vote,
+              (SELECT EXISTS( SELECT * FROM "Followers" f WHERE user_id = '${req.userData._id}' 
+              and f.follower_id= "Comments".User_ID and f."is_active"=true) AS is_follow),
+              (SELECT count(*) FROM "like_comments" as _votes JOIN "Users" _user on _user.id=_votes.user_id
+              WHERE _votes.comment_id = "Comments".id and _user."isBlocked"=false) AS total_votes
+              FROM "Comments"
+              JOIN "Users" ON "Comments".User_ID = "Users".ID
+              WHERE "Comments".photo_id = _photos.id and 
+              "Comments"."isDeleted"=false and "Users"."isBlocked"=false
+              and "Comments".top_comment_id='00000000-0000-0000-0000-000000000000'
+              ORDER BY "Comments"."createdAt" DESC, "Comments".id
+              LIMIT 1) as comments) as comments                       
+              from  "Photos" as _photos join "Users" as _users on _photos.user_id = _users.id 
+              ${req.body.sortingType == 'new_to_you' ? `LEFT JOIN "Views" v ON _photos.id = v.photo_id AND v.user_id = '${req.userData._id}'
+              LEFT JOIN "Votes" vt ON _photos.id = vt.photo_id AND vt.user_id = '${req.userData._id}' AND vt.is_vote = true
+              LEFT JOIN "Comments" c ON _photos.id = c.photo_id AND c.user_id = '${req.userData._id}'`:''}
+              ${req.body.sortingType == 'participating_members' ? `where _users."isPaid" = true`:''}
+              ${req.body.sortingType == 'by_recent_users' ? 'JOIN ( SELECT user_id, MAX("createdAt") AS max_createdAt FROM "Photos" where "isDeleted"=false and "isQueued"=false GROUP BY user_id) AS latest_photos ON _photos.user_id = latest_photos.user_id AND _photos."createdAt" = latest_photos.max_createdAt':''}
+              ${req.body.sortingType == 'this_week' ? `where date_trunc('week', _photos."createdAt"::timestamp AT TIME ZONE 'America/New_York') 
+              = date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York')`: ''}
+              ${req.body.sortingType == 'last_week' ? `where _photos."createdAt"::timestamp >= date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York') - interval '1 week' 
+              and _photos."createdAt"::timestamp <= date_trunc('week', CURRENT_TIMESTAMP AT TIME ZONE 'America/New_York')`: ''}
+              ${req.body.sortingType == 'following' ? `inner join "Followers" f on f."follower_id"= _users."id"
+              where f.user_id='${req.userData._id}' and _photos."user_id"= f."follower_id" and f."is_active"=true`: ''}  
+              ${req.body.userType == 'by_user' ?'where _photos.user_id = :authId': ''}
+              ${req.body.sortingType == 'new_to_you' ? `where v.id IS NULL AND vt.user_id IS NULL AND c.user_id IS NULL AND _photos."user_id" != '${req.userData._id}'`:''}
+              and _users."isBlocked"=false and _photos."isDeleted" =false and _photos."isQueued"=false
+              ${isRehuntedPhotoExist ? `and _photos.id != '${req.body.rehuntedPhoto['id']}'`: ''}
+              order by  
+                ${req.body.sortingType === 'following' || req.body.sortingType === 'new_to_you'
+                ||  req.body.sortingType === 'participating_members' ? `_photos."createdAt" DESC,  _photos.id`:''}
+
+                ${req.body.sortingType === 'by_recent_photos' ? `
+                  CASE 
+
+                WHEN _photos.user_id = '${req.userData._id}' and
+                (SELECT "lastVisitTime" FROM "Users" WHERE id = '${req.userData._id}')
+                < (SELECT MAX("createdAt") FROM "Photos" WHERE user_id = '${req.userData._id}' 
+                and "isDeleted" = false
+                and "isQueued"= false)
+                Then 2    
+
+                  WHEN (
+                          SELECT "lastVisitTime"
+                          FROM "Users"
+                          WHERE id = '${req.userData._id}'
+                        ) IS NOT NULL 
+                        AND _photos."boostedWeeklyPhoto" = 'Rehunted'
+                        AND _photos."createdAt" <  (SELECT "lastVisitTime" FROM "Users" WHERE id = '${req.userData._id}')
+                          AND EXISTS (
+                  SELECT 1
+                  FROM "Views"
+                  WHERE user_id = '${req.userData._id}'
+                    AND photo_id = _photos.id
+                    AND "boostedView" = false
+                )
+                  AND NOT EXISTS (
+                    SELECT 1 FROM "Votes" WHERE user_id = '${req.userData._id}' AND photo_id = _photos.id
+                  )
+                THEN 1
+
+                ELSE 0
+              END DESC,
+              _photos."createdAt" DESC` : ''}
+
+              ${req.body.sortingType === 'by_recent_users' ? '_users."createdAt" DESC,  _photos.id':''}
+              ${req.body.sortingType === 'leader_board' || req.body.sortingType === 'last_week'
+              || req.body.sortingType === 'this_week' ? 'total_votes DESC, _photos.id' : ''}
+              limit 10 offSet :offSet`;
+
+          }
+                
 
         const results = await sequelize.query(query, {
             type: sequelize.QueryTypes.SELECT,
@@ -1535,11 +1607,13 @@ export class photoService extends baseService {
         
         setTimeout(async () => {
           try {
-                const lastVisitTime = moment_timezone().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss.SSSZ');
-                  await this._userModel.update({ 
-                    lastVisitTime: lastVisitTime }, 
-                    { where: { id: req.userData._id } 
-                  });
+                if(req.body.sortingType != 'coming_next_photos'){
+                  const lastVisitTime = moment_timezone().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss.SSSZ');
+                    await this._userModel.update({ 
+                      lastVisitTime: lastVisitTime }, 
+                      { where: { id: req.userData._id } 
+                    });
+                }
           } 
           catch(err) {
             console.log(err.message);
@@ -2047,9 +2121,12 @@ export class photoService extends baseService {
     
     async getUserPhotos(req){
       try{   
-        global.appLogger.info(`\n---- Start Fetching User Photos Api Call by user with Id ${req.userData._id} ----`);
+        global.appLogger.info(`\n---- Start Fetching User Photos Api Call by user ----`);
         let query;  
           let userId = req.body.user_id;
+
+          let batchId = req.body?.batchId;
+
               if(req.body.profile){
                   let user = await UserModel.findOne({
                         where:{
@@ -2064,6 +2141,8 @@ export class photoService extends baseService {
         
                   userId = user.dataValues.id;
               }
+
+
         let userPhotos = `SELECT _photos.id, _photos.user_id, _photos."boostedWeeklyPhoto",
                 _photos."compressedImageId", _photos."photo_url" AS "original_photo_url",
                 _photos."compressedImageUrl" AS "photo_url", _photos."createdAt" AS photo_posted_date,
@@ -2084,13 +2163,27 @@ export class photoService extends baseService {
                 (SELECT COUNT(*) FROM "Votes" AS _votes JOIN "Users" u ON u.id = _votes.user_id  
                  WHERE _votes.photo_id = _photos.id AND u."isBlocked" = false 
                    AND _votes."is_vote" = true) AS total_votes,
-                (SELECT EXISTS( SELECT * FROM "Votes" v 
-                   WHERE photo_id = _photos.id AND v.user_id = :authId  AND v."is_vote" = true
-                )) AS is_vote,
-                (SELECT EXISTS( SELECT * FROM "Followers" f 
-                   WHERE user_id = :authId 
+                ${ req.body?.userType === 'user' ? `(SELECT EXISTS (
+                          SELECT 1
+                          FROM "Votes" v
+                          WHERE photo_id = _photos.id
+                            AND v.user_id = '${req.userData._id}'
+                            AND v."is_vote" = true
+                        ))`
+                    : batchId
+                      ? `(SELECT EXISTS (
+                            SELECT 1
+                            FROM temporary_user_actions tua
+                            WHERE tua.batch_id = '${batchId}'
+                              AND tua.action_type = 'upvote_photo'
+                              AND (tua.data->>'photoID') = _photos.id::text
+                          ))`
+                      : `false`
+                } AS is_vote,
+                ${req.body?.userType === 'user' ? `(SELECT EXISTS( SELECT * FROM "Followers" f 
+                   WHERE user_id = '${req.userData._id}'
                      AND f.follower_id = _photos.user_id AND f."is_active" = true
-                )) AS is_follow,
+                )) AS is_follow`: `false as is_follow`},
                 (SELECT jsonb_agg(jsonb_build_object(
                     'id', id, 'user_id', user_id, 'user_profile_pic', user_profile_pic,
                     'username', username, 'photo_id', photo_id, 'comment_text', comment_text, 
@@ -2108,15 +2201,17 @@ export class photoService extends baseService {
                       WHERE c.top_comment_id = "Comments".id AND c.photo_id = photo_id 
                         AND c."isDeleted" = false AND u."isBlocked" = false
                      ) AS total_replies,
-                     (SELECT EXISTS( 
+                     ${req.body?.userType === 'user' ? `(SELECT EXISTS( 
                         SELECT * FROM "like_comments" v 
                         WHERE comment_id = "Comments".id AND v.user_id = '${req.userData._id}'
-                     )) AS is_vote,
-                     (SELECT EXISTS( 
-                        SELECT * FROM "Followers" f 
-                        WHERE user_id = '${req.userData._id}' AND f.follower_id = "Users".id 
-                          AND f."is_active" = true
-                     )) AS is_follow,
+                     )) AS is_vote`: `false as is_vote`},
+                      ${req.body?.userType === 'user' ? `(SELECT EXISTS
+                        ( 
+                          SELECT * FROM "Followers" f 
+                          WHERE user_id = '${req.userData._id}' AND f.follower_id = "Users".id 
+                            AND f."is_active" = true
+                        )
+                      ) AS is_follow`: `false as is_follow`},
                      (SELECT COUNT(*) FROM "like_comments" AS _votes 
                       JOIN "Users" _user ON _user.id = _votes.user_id
                       WHERE _votes.comment_id = "Comments".id AND _user."isBlocked" = false
@@ -2154,7 +2249,7 @@ export class photoService extends baseService {
         
           const results = await sequelize.query(query, {
             type: sequelize.QueryTypes.SELECT,
-            replacements: { Offset:req.body.offset, userId: userId, authId:req.userData._id}
+            replacements: { Offset:req.body.offset, userId: userId}
           });
 
       

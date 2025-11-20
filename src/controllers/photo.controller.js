@@ -26,7 +26,7 @@ class photoController extends baseController {
         this.router.post(`${this.parentRouterPath}/weekly_upvoted_photos`, validationMiddleware(WeeklyUpvotedPhotoDto), conditionalAuthMiddleware, this.listWeeklyUpvotedPhotos)
         this.router.post(`${this.parentRouterPath}/get_past_upvoted_weeks`, conditionalAuthMiddleware, this.getPastUpvotedWeeks)
         this.router.post(`${this.parentRouterPath}/edit_photo`, validationMiddleware(editPhotoDto), authMiddleware(), this.editPhoto)
-        this.router.post(`${this.parentRouterPath}/get_user_photos`, validationMiddleware(UserPhotosDto), authMiddleware(), this.getUserPhotos)
+        this.router.post(`${this.parentRouterPath}/get_user_photos`, validationMiddleware(UserPhotosDto), conditionalAuthMiddleware, this.getUserPhotos)
         this.router.post(`${this.parentRouterPath}/get_photo_per_week`, validationMiddleware(getPhotoPerWeekDto), authMiddleware(), this.getPhotoPerWeek)
         this.router.post(`${this.parentRouterPath}/updateViewedPhotos`, validationMiddleware(updateViewedPhotoDto), authMiddleware(), this.updateViewedPhoto);
         //this.router.post(`${this.parentRouterPath}/getQueuedPhotoCount`, authMiddleware(), this.getQueuedPhotoCount)
@@ -289,9 +289,7 @@ class photoController extends baseController {
     getUserPhotos = async(req, res, next) => {
         try {
 
-            if (!req.userData)
-                new userNotAuthorizedException()   
-                
+           
             const photosData = await this._photoService.getUserPhotos(req);
             if(photosData && photosData.status == 'Error'){
                 res.status(400).send(this._responseTemplate('Error', undefined, photosData.message));

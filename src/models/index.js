@@ -24,4 +24,8 @@ export {default as PersonalPageFollowRelationModel } from './personal-page-follo
 export {default as FoldersModel } from './user_folders.model';
 export {default as PersonalPageVaultPhotosModel } from './personal_page_vault_photos.model';
 export {default as PhotoVaultLogsModel} from './photo_vault_logs.model';
+export {default as PhotoVaultBatchModel} from './photo_vault_batches.model';
+export {default as AdminNotificationTemplateModel } from './notification_template.model';
 export {default as ActivityCalloutModel } from './activity_callout.model';
+export {default as UserNotificationStatusModel } from './user_notification_status.model';
+export {default as TempUserActionsModel } from './temp_user_actions.model';

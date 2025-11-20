@@ -594,7 +594,7 @@ export class userService extends baseService {
 
                     userId = user.dataValues.id;
                }
-                global.appLogger.info(`\n---- Start Getting User Profile Api Call by user with Id ${req.userData._id} ----`);
+                global.appLogger.info(`\n---- Start Getting User Profile Api Call by user  ----`);
                 const isPhotoSorted = await this._galleryPhotoModel.count({
                     where:{
                     user_id: userId,
@@ -624,11 +624,19 @@ export class userService extends baseService {
                 ) AS strengths,
                 ( SELECT json_object_agg(meet_for, meet_for) FROM unnest(string_to_array(meet_for, ',')) meet_for
                 ) AS meet_for,
-                (SELECT CASE WHEN EXISTS (
-                SELECT 1 FROM "Followers" f 
-                WHERE f.user_id = :authId AND f.follower_id = :userId
-                and f."is_active"=true
-                ) THEN TRUE ELSE FALSE END AS is_follow),
+                ${req.body?.userType === 'user' 
+                    ? `(SELECT CASE 
+                        WHEN EXISTS (
+                            SELECT 1 FROM "Followers" f 
+                            WHERE f.user_id = '${req.userData._id}' 
+                                AND f.follower_id = :userId
+                                AND f."is_active" = true
+                            ) THEN TRUE 
+                            ELSE FALSE 
+                            END
+                        ) AS is_follow`
+                    : `false AS is_follow`
+                },
                 COALESCE(
                 (SELECT 
                     json_build_object('count', (SELECT count(*)
@@ -709,7 +717,7 @@ export class userService extends baseService {
 
                 const results = await sequelize.query(query, 
                 {   type: sequelize.QueryTypes.SELECT,
-                replacements: { userId: userId, authId: req.userData._id } 
+                replacements: { userId: userId } 
                 });
 
             if(results.length == 0){

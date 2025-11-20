@@ -12,6 +12,24 @@ export class commentService extends baseService {
     async addComment(req) {
        try
         {
+            if(req.body?.batchId){
+                 const defaultUUID = '00000000-0000-0000-0000-000000000000';
+                await this._tempUserActionsModel.create({
+                    batch_id: req.body.batchId,
+                    data: {
+                        photoID: req.body.photoID,  
+                        comment_text: req.body.commentText,
+                        sub_comment_id: req.body.subcommentID || defaultUUID,
+                        top_comment_id: req.body.topcommentID || defaultUUID,
+                    },
+                    action_type: 'comment'
+                });
+                return {
+                    response: 'Comment action queued in batch',
+                };
+            }
+
+
             global.appLogger.info(`\n---- Start Add Comment Api Call by user with Id ${req.userData._id} ----`);
             const newComment = await this._commentModel.create({
                 photo_id: req.body.photoID,

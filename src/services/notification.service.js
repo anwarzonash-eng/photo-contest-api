@@ -1,75 +1,142 @@
 import baseService from './base.service';
 import { sequelize } from '../utils/database';
-import {getUserRegularNotifications, getUserPhotoNotifications, updateUserNotifications} from '../utils/genericFunctions';
-  
+import {getUserRegularNotifications, getUserPhotoNotifications, updateUserNotifications, 
+    getActiveAdminNotifications
+} from '../utils/genericFunctions';
+import { literal } from 'sequelize';  
+
 export class notificationService extends baseService {
 
-
+    
     async viewAllNotifications(req){
         try{       
             global.appLogger.info(`\n ---- Start Fetching User Activity Api Call by User with Id ${req.userData._id} ----`);
+
+            const { newAdminNotifs, regularAdminNotifs } = await getActiveAdminNotifications(req.userData._id);
+
+            const pageOffset = req.body.offset || 0;
+            let notificationResults = [];
+            let photoIndex = 0;
+            let textCounter = 0;
+            let remainingOffset = pageOffset;
+            let notificationSet = req.body?.notificationSet  ?? false;
+            
+
+            let RegularNotificationResult = [];
+            let PhotoNotificationResult = [];
+            let regular_notifications = [];
+            let photo_notifications = [];
+        
+
+            let newAdminSlice = [];
+            if (newAdminNotifs.length > 0) {
+                if (remainingOffset < newAdminNotifs.length) {
+                    newAdminSlice = newAdminNotifs.slice(remainingOffset, remainingOffset + 10);
+                }
+            }
+
             const user = await this._userModel.findOne({
-                where:{
-                    id: req.userData._id
-                },
-                attributes:['notifications']
+                    where:{
+                        id: req.userData._id
+                    },
+                    attributes:['notifications']
             });
-            let notifications = user['dataValues']['notifications'];
-            let RegularNotificationResult; let PhotoNotificationResult;
-            let regular_notifications; let photo_notifications;
-            let photoOffset;
-            const regularNotifs = notifications?.[0]?.regular_notifications || [];
-            if(notifications && regularNotifs.length > 0 && req.body.offset < 11){
-                photoOffset = req.body.offset > 0 ? (req.body.offset / 10) * 2 : 0;
-                RegularNotificationResult = notifications[0]?.regular_notifications.slice(req.body.offset, req.body.offset + 10);
-                PhotoNotificationResult = notifications[1]?.photo_notifications.slice(photoOffset, photoOffset + 2);
-            }
-            else{
-                let RegularNotificationLimit=10; let PhotoNotificationLimit=2;
-                if(req.body.offset == 0 ){
-                    RegularNotificationLimit = 20;
-                    PhotoNotificationLimit = 4;
-                }
-            let photoOffset = req.body.offset > 0 ? (req.body.offset / PhotoNotificationLimit) * 2 : 0;
-                RegularNotificationResult = await  getUserRegularNotifications(req.userData._id, req.body.offset, RegularNotificationLimit);              
-                PhotoNotificationResult = await getUserPhotoNotifications(req.userData._id, photoOffset, PhotoNotificationLimit);
                 
+            
+            let notifications = user?.dataValues?.notifications || [];
+            let TotalUserRegularNotifications = notifications[0]?.regular_notifications?.length ?? 0;
+            let TotalUserPhotoNotifications = notifications[1]?.photo_notifications?.length  ?? 0;
+            let UserRegularNotifications =   notifications[0]?.regular_notifications;
+            let UserPhotoNotifications =  notifications[1]?.photo_notifications;
+            let userPhotoNotifStartIndex = req.body.userPhotoNotifStartIndex ?? 0;
+            let userPhotoNotifEndIndex;
+            let regularNotifStartIndex = req.body.regularNotifStartIndex ?? 0;
+            const pageLimit = 10;
+            let photoLimit = 2;
+            let photoOffset = pageOffset > 0 ? Math.floor(remainingOffset / pageLimit) * photoLimit : 0;
 
-                if(req.body.offset == 0){
-                    regular_notifications = RegularNotificationResult;
-                    photo_notifications = PhotoNotificationResult;    
-                    RegularNotificationResult = RegularNotificationResult.slice(req.body.offset, req.body.offset + 10);
-                    PhotoNotificationResult = PhotoNotificationResult.slice(photoOffset, photoOffset + 2);
-                }
-            }
-
-            let notificationResults = []; let unviewedNotification = [];
-            let RegularNotificationIndex = 0, photoIndex = 0;
-
-            const addPhotoNotifications = RegularNotificationResult.length >= 5;
-            while (RegularNotificationIndex < RegularNotificationResult.length || (addPhotoNotifications && photoIndex < PhotoNotificationResult.length)) {
-                if (RegularNotificationIndex < RegularNotificationResult.length) {
-                    if(unviewedNotification.length==0 && RegularNotificationResult[RegularNotificationIndex]["is_seen"]==true && RegularNotificationResult[0]["is_seen"]!=true){
-                        let unviewedNotificationObj = { notification_type: "unviewed" };
-                        unviewedNotification.push(unviewedNotificationObj);
-                        notificationResults.push(unviewedNotificationObj);
+             if(newAdminSlice.length > 0 && newAdminSlice.length < 10 && TotalUserRegularNotifications > 0 ){
+                let regularNotificationRequired = 10 - newAdminSlice.length;
+                let regularUserNotif =  UserRegularNotifications.slice(0, regularNotificationRequired);     
+                RegularNotificationResult = regularUserNotif;
+                notificationSet = false;
+                regularNotifStartIndex = regularNotificationRequired;
+             }
+             else if(newAdminSlice.length == 0 && TotalUserRegularNotifications > 0 && req.body.notificationSet == false) {   
+                let regularNotifEndIndex = regularNotifStartIndex + 10;
+                    RegularNotificationResult =  UserRegularNotifications.slice(regularNotifStartIndex, regularNotifEndIndex);     
+                    let RegularNotificationLength = RegularNotificationResult.length;
+                    if(RegularNotificationLength < 10){
+                        let regularNotificationRequired = 10 - RegularNotificationLength;
+                        RegularNotificationResult = await getUserRegularNotifications(req.userData._id, TotalUserRegularNotifications, regularNotificationRequired); 
+                        regularNotifStartIndex = regularNotificationRequired;
+                        notificationSet = true;
                     }
-                    
-                    notificationResults.push(RegularNotificationResult[RegularNotificationIndex]);
-                    RegularNotificationIndex++;
+                    else if(TotalUserRegularNotifications > regularNotifEndIndex){
+                        notificationSet = false;
+                        regularNotifStartIndex = regularNotifEndIndex;
+                    }
+                    else if(TotalUserRegularNotifications == regularNotifEndIndex){
+                        notificationSet = true;
+                        regularNotifStartIndex = regularNotifEndIndex;
+                    }
+            }
+            else if (notificationSet == true){
+                let regularNotifEndIndex = regularNotifStartIndex + 10;
+                RegularNotificationResult = await getUserRegularNotifications(req.userData._id, regularNotifStartIndex, 10);
+                notificationSet = true;       
+                regularNotifStartIndex = regularNotifEndIndex;
+                /*if(RegularNotificationResult.length < 10){
+                      RegularNotificationResult.push(
+                        ...regularAdminNotifs.map(n => ({ 
+                            ...n, 
+                            notification_type: "admin_regular" 
+                        }))
+                    );
                 }
-    
-                // After every 5th RegularNotification result, add a photo result if available
-                if (addPhotoNotifications && photoIndex < PhotoNotificationResult.length && (RegularNotificationIndex % 5 === 0)) {
+                    */
+       
+             }
+
+             if(PhotoNotificationResult.length == 0 && (newAdminSlice.length > 0 || RegularNotificationResult.length >= 5 )){
+                userPhotoNotifEndIndex = userPhotoNotifStartIndex + 2;
+                let photoLimit = 2;
+                if(TotalUserPhotoNotifications >= userPhotoNotifEndIndex){
+                    PhotoNotificationResult = UserPhotoNotifications.slice(userPhotoNotifStartIndex, userPhotoNotifEndIndex); 
+                }
+                else{
+                    if(RegularNotificationResult.length < 10){
+                        photoLimit = 1;
+                    }
+                    PhotoNotificationResult = await getUserPhotoNotifications(req.userData._id, userPhotoNotifStartIndex, photoLimit);
+                }
+             }
+
+            const allTextNotifications = [
+                ...newAdminSlice.map(n => ({ ...n, notification_type: "admin_new" })),
+                ...RegularNotificationResult, 
+            ];
+
+          
+            for (const notif of allTextNotifications) {
+                notificationResults.push(notif);
+                textCounter++;
+
+                if (textCounter % 5 === 0 && photoIndex < PhotoNotificationResult.length) {
                     notificationResults.push(PhotoNotificationResult[photoIndex]);
                     photoIndex++;
                 }
-
-                if(RegularNotificationIndex ==  RegularNotificationResult.length){
-                    break;
-                }
             }
-      
+
+          
+            while (photoIndex < PhotoNotificationResult.length) {
+                notificationResults.push(PhotoNotificationResult[photoIndex]);
+                photoIndex++;
+            }
+
+           
+            const paginatedResults = notificationResults.slice(0, pageLimit + photoLimit);
+            
             const member = await this._userModel.findOne({
                 where:{
                     id:req.userData._id
@@ -87,7 +154,49 @@ export class notificationService extends baseService {
             });
           
             setTimeout(async () => {
+                 try{
+                   if (newAdminNotifs && newAdminNotifs.length > 0) {
+                        for (const notif of newAdminNotifs) {
+                            const templateId = notif.template_id; 
+                            if (templateId) {
+                            const existingView = await this._userNotificationStatusModel.findOne({
+                                where: {
+                                user_id: req.userData._id,
+                                template_id: templateId
+                                }
+                            });
+
+                            if (existingView) {
+                                await this._userNotificationStatusModel.update(
+                                { viewed_count: existingView.viewed_count + 1 },
+                                {
+                                    where: {
+                                    user_id: req.userData._id,
+                                    template_id: templateId
+                                    }
+                                }
+                                );
+                            } else {
+                                await this._userNotificationStatusModel.create({
+                                    user_id: req.userData._id,
+                                    template_id: templateId,
+                                    viewed_count: 1,
+                                });
+                            }
+                            }
+                        }
+                    }
+
+                }
+                catch(err){
+                    console.log(err.message);
+                }
+
+                
+                
                 try {
+
+                    
                     await this._notificationModel.update({
                         is_seen: true
                     }, {
@@ -152,8 +261,11 @@ export class notificationService extends baseService {
                 }
             },0);
 
+
             global.appLogger.info(`[End] Notifications Fetched Successfully \n`);
-            return {notifications: notificationResults, memberSince, total_notifications};
+
+            return {notifications: paginatedResults, memberSince, total_notifications, notificationSet, regularNotifStartIndex, userPhotoNotifStartIndex: userPhotoNotifEndIndex};
+           
         }
         catch(err){
             global.appLogger.error(`[Error] Fetching View All Notification Api ${err.message} \n`);
@@ -163,7 +275,28 @@ export class notificationService extends baseService {
            
     }
   
-    
+    async AddNotificationViewCount(req){
+        try{       
+
+            let userId = req.userData._id;
+            global.appLogger.info(`\n ---- Start Adding Notification View Count Api Call by User with Id ${userId} ----`);
+            
+            await this._userNotificationStatusModel.upsert({
+                user_id: userId,
+                template_id: req.body.notificationId,
+                viewed_count: literal('COALESCE(viewed_count, 0) + 1')
+            });
+
+            global.appLogger.info(`[End] Notification View Count Added Successfully \n`);
+            return {message: 'Notification View Count Added Successfully'};
+        }
+        catch(err){
+            global.appLogger.error(`[Error] Add Notification View Count Api ${err.message} \n`);
+            throw new Error(err.message);
+        }
+    }
+
+
     async getNotification(req){
         try{
             global.appLogger.info(`\n---- Starting Notifications Api Call by User with Id ${req.userData._id} ----`);

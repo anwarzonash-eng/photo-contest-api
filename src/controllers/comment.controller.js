@@ -1,5 +1,5 @@
 import baseController from "./base.controller"
-import { validationMiddleware, authMiddleware } from '../middleware';
+import { validationMiddleware, authMiddleware, conditionalAuthMiddleware } from '../middleware';
 import { AddCommentDto, listCommentDto, listReplyDto } from "../dtos";
 import userNotAuthorizedException from "../exceptions/userNotAuthorized.exception";
 
@@ -12,7 +12,7 @@ class commentController extends baseController {
     }
 
     initializeRouter() {
-        this.router.post(`${this.parentRouterPath}/add`, validationMiddleware(AddCommentDto), authMiddleware(), this.addComment)
+        this.router.post(`${this.parentRouterPath}/add`, validationMiddleware(AddCommentDto), conditionalAuthMiddleware, this.addComment)
         this.router.post(`${this.parentRouterPath}/list`,validationMiddleware(listCommentDto), authMiddleware(), this.listComment)
         this.router.post(`${this.parentRouterPath}/list_replies`,validationMiddleware(listReplyDto), authMiddleware(), this.listReplies)
     }
@@ -20,8 +20,7 @@ class commentController extends baseController {
 
     addComment = async (req, res, next) => {
         try {
-            if (!req.userData)
-                new userNotAuthorizedException()
+            
             const commentData = await this._commentService.addComment(req)
             return res.send(commentData.status === "Error"
             ? this._responseTemplate('Error', undefined, commentData.message)

@@ -47,7 +47,7 @@ export function authMiddleware(isSkipAuthorization = false) {
 
 
 export const conditionalAuthMiddleware = (req, res, next) => {
-  if (req.body.userType !== 'all') {
+  if ((req.body.userType && req.body.userType !== 'all') || (!req.body.userType && !req.body.batchId)) {
     return authMiddleware()(req, res, next);
   }
   next();

@@ -46,10 +46,8 @@
     "reflect-metadata": "^0.1.13",
     "require": "^0.4.4",
     "sequelize": "^6.31.1",
-    "sharp": "^0.32.5",
     "socket.io": "^4.7.4",
     "stripe": "^16.5.0",
-    "twit": "^2.2.11",
     "util": "^0.12.5",
     "winston": "^3.12.0",
     "winston-daily-rotate-file": "^5.0.0"

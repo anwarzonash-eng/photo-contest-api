@@ -97,6 +97,10 @@ export class CreateUserDto {
     @IsOptional()
     heard_us;
 
+    
+    @IsOptional()
+    batchId;
+
   }
 
   export class updateSubscriptionReasonDto{
@@ -275,6 +279,11 @@ export class UserByIdDto{
   @IsOptional()
   @IsNotEmpty()
   profile;
+
+
+  @IsOptional()
+  @IsIn(['user', 'all'])
+  userType;
 }
 
 

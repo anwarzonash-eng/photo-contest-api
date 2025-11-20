@@ -4,7 +4,8 @@ import { UserModel, NotificationModel, PhotoModel, GalleryPhotoModel, PhotoClick
      HuntScoreModel, LikeGalleryPhotoModel, PhotoNotificationsModel, PersonalWebsiteModel, PersonalPhotoModel,
      PersonalPhotoUpvoteModel, PrevTownHallModel, MonthlyTownHallModel, PersonalPageFollowerModel, 
      PersonalPageFollowEventModel, PersonalPageFollowRelationModel, FoldersModel, PersonalPageVaultPhotosModel,
-     PhotoVaultLogsModel, ActivityCalloutModel
+     PhotoVaultLogsModel, PhotoVaultBatchModel, AdminNotificationTemplateModel, ActivityCalloutModel, 
+     UserNotificationStatusModel, TempUserActionsModel
 } from "../models";
 
 class baseService {    
@@ -34,7 +35,11 @@ class baseService {
     _foldersModel;
     _personalPageVaultPhotosModel;
     _photoVaultLogsModel;
+    _photoVaultBatchModel;
+    _adminNotificationTemplateModel;
     _activityCalloutModel;
+    _userNotificationStatusModel;
+    _tempUserActionsModel;
 
 
     constructor(){
@@ -64,7 +69,11 @@ class baseService {
         this._foldersModel = FoldersModel;
         this._personalPageVaultPhotosModel = PersonalPageVaultPhotosModel;
         this._photoVaultLogsModel = PhotoVaultLogsModel;
+        this._photoVaultBatchModel = PhotoVaultBatchModel;
+        this._adminNotificationTemplateModel = AdminNotificationTemplateModel;
         this._activityCalloutModel = ActivityCalloutModel;
+        this._userNotificationStatusModel = UserNotificationStatusModel;   
+        this._tempUserActionsModel = TempUserActionsModel; 
     }
 }
 

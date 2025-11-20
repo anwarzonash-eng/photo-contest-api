@@ -57,11 +57,9 @@ export const uploadPhoto = async (file) => {
 export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
     const transaction = await sequelize.transaction();  
     try {
-        const keysToDelete = [];
 
          for (const s3Key of s3Keys) {
             let photoUrl = s3Key.photo_url?.replace(/^https?:\/\/[^/]+\/?/, '');
-            keysToDelete.push(photoUrl);
             
             // downlad photo from s3 bucket
             const s3Object = await s3.getObject({
@@ -76,7 +74,7 @@ export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
 
             const fileName = path.basename(photoUrl);
             const backblazeKey = `${userId}/${folderId}/${fileName}`;
-            let backBlazeUrl = await uploadPhotoToBackBlaze(b2, Env.BackBlaze_Bucket, Env.BackBlaze_Region, backblazeKey, s3Object);
+            let backBlazeUrl = await uploadPhotoToBackBlaze(b2, Env.BackBlaze_Bucket, backblazeKey, s3Object);
 
 
             const backblazeBuffer = await fetchPhotoFromBackBlaze(b2, backblazeKey, Env.BackBlaze_Bucket);
@@ -101,11 +99,16 @@ export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
         
             fs.unlinkSync(tempFilePath);
 
+            const imgExtension = cloudinaryResult.fileFormat;        
+            const imgFileSizeBytes = cloudinaryResult.fileSize; 
             await PersonalPageVaultPhotosModel.update(
                 { 
                     backBlazeImageUrl: backBlazeUrl,
                     compressedImageUrl: cloudinaryResult.compressedImageUrl,  
-                    compressedImageId: cloudinaryResult.compressedImageId 
+                    compressedImageId: cloudinaryResult.compressedImageId,
+                    fileType: imgExtension,
+                    fileSize: imgFileSizeBytes,
+                    status: 'uploaded_to_BackBlaze'
                 },
                 {   
                     where: { 
@@ -118,16 +121,6 @@ export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
 
         
         await transactionCommit(transaction);
-
-        // delete all vault photos from s3 
-        await s3.deleteObjects({
-            Bucket: Env.Bucket,
-            Delete: {
-                Objects: keysToDelete.map(
-                    (key) => ({ Key: key })
-                ),
-            },
-        }).promise();
         return;
 
   } 
@@ -136,6 +129,33 @@ export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
     throw err;
   }
 };
+
+
+export const deletePhotosFromS3 = async (photosToDelete ) => {
+    const transaction = await sequelize.transaction();  
+    
+    try {
+            
+        // delete all vault photos from s3 
+        await s3.deleteObjects({
+            Bucket: Env.Bucket,
+            Delete: {
+                Objects: photosToDelete.map(
+                    (key) => ({ Key: key })
+                ),
+            },
+        })
+        .promise();
+            
+
+        await transactionCommit(transaction);
+    }
+    catch(err){
+        await transactionRollback(transaction);
+    }
+}
+
+
 
 
 export const uploadTempPhotos = async (file, eventId) => {

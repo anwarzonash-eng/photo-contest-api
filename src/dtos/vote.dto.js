@@ -1,4 +1,4 @@
-import {IsString, IsNotEmpty,IsIn} from 'class-validator';
+import {IsString, IsNotEmpty,IsIn, IsOptional} from 'class-validator';
 import 'reflect-metadata';
 
 
@@ -11,6 +11,10 @@ export  class PerformVoteDto {
     @IsNotEmpty()
     @IsIn(['add', 'remove'])
     actionType;
+
+    
+    @IsOptional()
+    batchId;
 }
 
 

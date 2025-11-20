@@ -41,13 +41,17 @@ class App {
     constructor() {
         this.app = express()
         //this.syncDatabase();
-        /*this.app.use(cors({
+       /*this.app.use(cors({
             origin: '*', 
             methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
             allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
-        }));*/
+        }));
+
+        */
         
+
         this.app.use(cors({ origin: '*' }));
+
           
         this.app.use(express.static("public"));
         this.app.use(express.static("uploads"));
@@ -397,19 +401,7 @@ class App {
                 const priceId = data.lines?.data[0]?.price?.id;   
                 const stripe = new Stripe(Env.stripeSecretKey, { apiVersion: '2020-08-27' });
                 const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-                /*if (!subscription.default_payment_method) {
-                    paymentLogger.error({
-                        message: 'No payment method attached for trialing subscription',
-                        email: email,
-                        subscriptionId: subscriptionId
-                    });
-                    
-                    return;
-                }
-                */
-
-                
-                
+             
                 let membershipPlan;
                 let paidInterestCategory;
                 switch (priceId) {
@@ -703,7 +695,6 @@ class App {
             }  
         } 
 
-    
 
      
         this.app.use(bodyParser.urlencoded({ extended: false }));

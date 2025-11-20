@@ -4,8 +4,6 @@ import { Env } from "../config";
 export const sequelize = new Sequelize(Env.DB_string, { logging: false,  dialectOptions: {
     useUTC: false, // Prevents Sequelize from converting dates to UTC
       statement_timeout: 10000, // PostgreSQL: max 10s per query
-       require: true,
-      rejectUnauthorized: false,
 },  timezone: 'America/New_York', 
 
 pool: {
@@ -15,8 +13,6 @@ pool: {
     idle: 10000,    // how long a connection stays idle before release
     evict: 1000,    // how often to check for idle connections
   },})
-
-
 
 // Set the timezone on the PostgreSQL server for each connection
 sequelize.afterConnect(async (connection) => {

@@ -31,6 +31,7 @@ export class paymentService extends baseService {
 
 
                 const customerEmail = email !== '' ? { customer_email: email } : {};
+
                 const session = await stripe.checkout.sessions.create({
                     payment_method_types: ['card', 'link'],
                     payment_method_collection: "always",
@@ -48,8 +49,7 @@ export class paymentService extends baseService {
                     success_url: `${Env.Base_Url}${successUrl}`,
                     cancel_url: `${Env.Base_Url}${cancelUrl}`,
                 });
-
-
+          
                 await this._userModel.update({
                     sessionId: session.id
                 }, {
@@ -61,7 +61,7 @@ export class paymentService extends baseService {
             //}
         }
         catch(err){
-            return { status: 'Error', message: 'Something went wrong while generating sessionId' };
+            return { status: 'Error', message: err.message };
         }
     }
 }

@@ -1,5 +1,5 @@
 import baseController from "./base.controller"
-import { validationMiddleware, authMiddleware} from '../middleware';
+import { validationMiddleware, authMiddleware, conditionalAuthMiddleware} from '../middleware';
 import { editProfileDto, uploadCoverPhotoDto, changePasswordDto, updateSubscriptionReasonDto, 
     acceptedInviterInvitationDto, UserByIdDto, UserEmailDto, ContactUsDto, WelcomeUserDto,
      updateLastVisitTimeDto, sendPhotoReminderDto } from "../dtos";
@@ -15,7 +15,7 @@ class userController extends baseController {
         this.router.post(`${this.parentRouterPath}/edit_profile`, validationMiddleware(editProfileDto), authMiddleware(), this.editProfile)  
         this.router.post(`${this.parentRouterPath}/uploadCoverPhoto`, validationMiddleware(uploadCoverPhotoDto), authMiddleware(), this.uploadCoverPhoto)  
         this.router.post(`${this.parentRouterPath}/changepassword`, validationMiddleware(changePasswordDto), authMiddleware(), this.changePassword)  
-        this.router.post(`${this.parentRouterPath}/get_user_profile`, validationMiddleware(UserByIdDto), authMiddleware(), this.getUserProfile)
+        this.router.post(`${this.parentRouterPath}/get_user_profile`, validationMiddleware(UserByIdDto), conditionalAuthMiddleware, this.getUserProfile)
         this.router.post(`${this.parentRouterPath}/add_newsletter_recipient`, validationMiddleware(UserEmailDto), this.AddNewsletterRecipient)
         this.router.post(`${this.parentRouterPath}/contact-us`, validationMiddleware(ContactUsDto), this.ContactUs)
         this.router.post(`${this.parentRouterPath}/weeklyTopTenUsers`, authMiddleware(), this.weeklyTopTenUsers)

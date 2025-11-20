@@ -16,6 +16,10 @@ export class AddCommentDto {
 
   @IsOptional()
   subcommentID;
+
+
+  @IsOptional()
+  batchId;
 }
 
 

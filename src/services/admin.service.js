@@ -1,64 +1,64 @@
 import { response } from 'express';
 import baseService from './base.service';
-import { createToken} from '../utils/jwt';
+import { createToken } from '../utils/jwt';
 import bcrypt from 'bcrypt'
 import { sequelize } from '../utils/database';
 import axios from 'axios';
 import archiver from 'archiver';
 import path from 'path';
 const uploadPhoto = require("../utils/aws/s3");
-import {photoOptimization} from "../utils/cloudinary/photo_optimization";
+import { photoOptimization } from "../utils/cloudinary/photo_optimization";
 const moment = require('moment');
 
 
 export class adminService extends baseService {
-    async AdminLogin(email,  userPassword) {
-        try{             
+    async AdminLogin(email, userPassword) {
+        try {
             global.appLogger.info(`\n---- Start Admin Login Api Call with email as ${email} ----`);
-                let user = await this._userModel.findOne({ 
-                    where: {
-                        name: email,
-                        isAdmin: true
-                    },
-                    attributes:['id', 'name', 'email', 'password']
-                });
+            let user = await this._userModel.findOne({
+                where: {
+                    name: email,
+                    isAdmin: true
+                },
+                attributes: ['id', 'name', 'email', 'password']
+            });
 
-                if (!user) {
-                    return {status:'Error', message: `Invalid username. Please check the username and try again.`}
-                }
-            
-            
-                const passwordMatch = await bcrypt.compare(userPassword, user.password);
-                if (!passwordMatch) {
-                    return {status:'Error', message: `Invalid credentials. Please check your password and try again.`}
-                }
- 
-                const Token = await createToken(user);
-                const { password, ...userData } = user.toJSON ? user.toJSON() : user;
-                global.appLogger.info(`[End] Admin Login Successfully\n`);
-                return [userData, Token];   
+            if (!user) {
+                return { status: 'Error', message: `Invalid username. Please check the username and try again.` }
+            }
+
+
+            const passwordMatch = await bcrypt.compare(userPassword, user.password);
+            if (!passwordMatch) {
+                return { status: 'Error', message: `Invalid credentials. Please check your password and try again.` }
+            }
+
+            const Token = await createToken(user);
+            const { password, ...userData } = user.toJSON ? user.toJSON() : user;
+            global.appLogger.info(`[End] Admin Login Successfully\n`);
+            return [userData, Token];
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Admin Login Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
 
 
-    async FetchActivityPageCallout(){
-        try{
-            global.appLogger.info(`\n---- Start Fetching Activity Page Callout Api Call ----`);    
-            
+    async FetchActivityPageCallout() {
+        try {
+            global.appLogger.info(`\n---- Start Fetching Activity Page Callout Api Call ----`);
+
             const activityCallout = await this._activityCalloutModel.findOne({
                 order: [['createdAt', 'DESC']],
                 limit: 1
             });
-            
+
             global.appLogger.info(`[End] Successfully Fetched Activity Page Callout \n`);
-            
-            return {activityCallout};
+
+            return { activityCallout };
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Fetching Activity Page Callout Api ${err.message} \n`);
             throw new Error(err.message);
         }
@@ -66,50 +66,56 @@ export class adminService extends baseService {
 
 
 
-    async UpdateActivityPageCallout(req){
-        try{    
+    async UpdateActivityPageCallout(req) {
+        try {
             global.appLogger.info(`\n---- Start Updating Activity Page Callout Api Call By Admin ----`);
-            
+
             let { id, title, subTitle, CTA, CTA_Url } = req.body;
-            
+
             const [_, [updatedCallout]] = await this._activityCalloutModel.update({
-                    title,
-                    subTitle,
-                    CTA,
-                    CTA_Url
-                }, {
-                    where: { 
-                        id
-                    },
-                    returning: true
+                title,
+                subTitle,
+                CTA,
+                CTA_Url
+            }, {
+                where: {
+                    id
+                },
+                returning: true
             });
-                    
-            let activityCallout = updatedCallout?.get();    
+
+            let activityCallout = updatedCallout?.get();
 
             global.appLogger.info(`[End] Successfully Updated Activity Page Callout \n`);
             return { activityCallout }
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Updating Activity Page Callout Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
 
 
-    async AddUserNotifications(req){
-        try{
-            global.appLogger.info(`\n---- Start Adding User Notifications Api Call By Admin ----`);    
+    async AddUserNotifications(req) {
+        try {
+            global.appLogger.info(`\n---- Start Adding User Notifications Api Call By Admin ----`);
 
             let photoUrl, optimizedData, notification;
             let notificationId = req.body?.notificationId;
-            
-            let photo =  req.files?.photo;
-            if(req.files && photo) {
-                photoUrl = await uploadPhoto.uploadPhoto(photo);  
-                let imageFilePath = photo['tempFilePath'];
-                optimizedData = await photoOptimization(imageFilePath, {folder:'Resized_Photos', quality:"auto:good"});  
+            let target_conditions = req.body?.target_conditions;
+            if (target_conditions && typeof target_conditions === 'string') {
+                target_conditions = JSON.parse(target_conditions);
             }
-         
+
+            photoUrl = req.body?.photo_url;
+
+            let photo = req.files?.photo;
+            if (req.files && photo) {
+                photoUrl = await uploadPhoto.uploadPhoto(photo);
+                let imageFilePath = photo['tempFilePath'];
+                optimizedData = await photoOptimization(imageFilePath, { folder: 'Resized_Photos', quality: "auto:good" });
+            }
+
             let notificationObj = {
                 sender_id: req.adminUser._id,
                 message: req.body.message,
@@ -119,68 +125,94 @@ export class adminService extends baseService {
                 btnLabel: req.body?.btnLabel,
                 btnUrl: req.body?.btnUrl,
                 postedType: req.body.postedType,
-                postedAt:  req.body.postedType === 'immediate' 
-                ? moment.utc().toDate() : moment.utc(req.body.postedAt, "MM-DD-YYYY HH:mm").toDate(), 
+                postedAt: req.body.postedType === 'immediate'
+                    ? moment.utc().toDate() : moment.utc(req.body.postedAt, "MM-DD-YYYY HH:mm").toDate(),
                 expirationType: req.body.expirationType,
-                expiredAt: req.body.expirationType === 'scheduled' 
-                ? moment.utc(req.body.expiredAt, "MM-DD-YYYY HH:mm").toDate()  : null, 
+                expiredAt: req.body.expirationType === 'scheduled'
+                    ? moment.utc(req.body.expiredAt, "MM-DD-YYYY HH:mm").toDate() : null,
                 shownNoOfTimes: req.body?.shownNoOfTimes,
-                target_conditions: req.body?.target_conditions
+                target_conditions
             }
 
-            if(notificationId){
+            if (notificationId) {
                 const [_, [updatedNotification]] = await this._adminNotificationTemplateModel.update(notificationObj, {
-                    where:{
+                    where: {
                         id: notificationId
                     },
                     returning: true
-                  });
+                });
 
-                  notification = updatedNotification?.get();
+                notification = updatedNotification?.get();
             }
-            else{
-                  notification = await this._adminNotificationTemplateModel.create(notificationObj);
+            else {
+                notification = await this._adminNotificationTemplateModel.create(notificationObj);
             }
 
             global.appLogger.info(`[End] Successfully Added User Notification \n`);
 
             return { notification }
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Adding User Notifications Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
-    
 
-    async FetchUserNotifications(req){
-        try{
-              
+
+    async FetchUserNotifications(req) {
+        try {
+
             global.appLogger.info(`[Start] Fetching All User Notifications Api By Admin \n`);
             const notifications = await this._adminNotificationTemplateModel.findAndCountAll({
-               order:[['createdAt', 'DESC']],
-               offset: req.body.offSet,
-               limit: 10
+                order: [['createdAt', 'DESC']],
+                offset: req.body.offSet,
+                limit: 10
             });
 
             global.appLogger.info(`[End] Successfully Fetched All User Notifications \n`);
-            
+
             return {
-                notifications: notifications.rows, 
+                notifications: notifications.rows,
                 recordsCount: notifications.count
             }
-            
+
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Get All User Notifications Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
 
+
+    async StopUserNotification(req) {
+        try {
+            global.appLogger.info(`[Start] Stop User Notification Api By Admin \n`);
+
+            let { isStopped, notificationId } = req.body;
+
+            await this._adminNotificationTemplateModel.update({
+                isActive: !isStopped
+            }, {
+                where: {
+                    id: notificationId
+                }
+            });
+
+            global.appLogger.info(`[End] Successfully Stopped User Notification \n`);
+            return { message: 'User Notification Stopped Successfully!' }
+        }
+        catch (err) {
+            global.appLogger.error(`[Error] Stop User Notifications Api ${err.message} \n`);
+            throw new Error(err.message);
+        }
+    }
+
+
+
     async getAllUsersList(data) {
-        try{   
-            global.appLogger.info(`\n---- Start GetAllUsersList Api Call By Admin ----`);    
-    
+        try {
+            global.appLogger.info(`\n---- Start GetAllUsersList Api Call By Admin ----`);
+
             let searchKeyword = data?.searchKeyword;
             const sortBy = data.sortBy || 'createdAt';
             const sortType = data.sortType || 'DESC';
@@ -188,15 +220,15 @@ export class adminService extends baseService {
 
             const isInstagramLinkSort = sortBy === 'instagram_link';
             orderByClause = isInstagramLinkSort
-                    ? `CASE WHEN "instagram_link" IS NULL OR TRIM("instagram_link") = '' THEN 1 
+                ? `CASE WHEN "instagram_link" IS NULL OR TRIM("instagram_link") = '' THEN 1 
                             ELSE 0 
                         END ASC,
                         "instagram_link" ${sortType}`
-                    : sortBy === 'last_activity' ? `CASE WHEN "last_activity" IS NULL THEN 1 
+                : sortBy === 'last_activity' ? `CASE WHEN "last_activity" IS NULL THEN 1 
                     ELSE 0 END ASC,
                     "last_activity" ${sortType}`
                     : `"${sortBy}" ${sortType}`;
-                                
+
 
             const query = `
                 WITH user_stats AS (
@@ -208,7 +240,27 @@ export class adminService extends baseService {
                         u."user_type" as login,
                         u."instagram_link",
                         u."state" as location,
-                        COALESCE(u."lastVisitTime", u."activity_viewed")::date as last_activity,
+                        COALESCE(u."lastVisitTime", u."activity_viewed")::date as last_activity,                                       
+                        CASE 
+                            WHEN u."membershipPlan" = 'Monthly' THEN 'M'
+                            WHEN u."membershipPlan" = 'Annual' THEN 'A'
+                            WHEN u."membershipPlan" = '2 Year' THEN '2Y'
+                            WHEN u."membershipPlan" = 'Storage Vault' THEN 'S'
+                            ELSE NULL
+                        END AS "pro_member",                                 
+                        (
+                            SELECT EXISTS (
+                                SELECT 1
+                                FROM "Personal_Websites"
+                                WHERE "user_id" = u."id"
+                                AND NOW() >= (("createdAt")::timestamptz + INTERVAL '56 minutes')
+                                FOR SHARE
+                            )
+                        ) AS is_personal_site,
+                        (SELECT COUNT(*) FROM "personal_photos" WHERE "user_id" = u."id" AND "isDeleted" = false AND "isActive" = true) AS personal_photo_count,
+                        (Select count(*) from "personal_photos_vault" where "user_id"= u.id AND "isDeleted" = false and "status" = 'uploaded_to_BackBlaze') As vault_count,                                            
+                        (SELECT COUNT(*) FROM  "personal_page_follow_relations" f
+                        WHERE f.follower_id = u."id" AND "is_follow" = true) as followers_count,
                         (SELECT COUNT(*) FROM "Photos" WHERE "user_id" = u."id" AND "isDeleted" = false AND "isQueued" = false) as hunted,
                         (SELECT CASE 
                                     WHEN u."isPaid" = false THEN LEAST(
@@ -268,33 +320,33 @@ export class adminService extends baseService {
                     OFFSET ${data.offSet}
                     LIMIT ${data.limit}
                 ) AS user_data`;
-                
+
             const results = await sequelize.query(query, {
                 type: sequelize.QueryTypes.SELECT
-            });  
+            });
 
             return results;
 
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Get All Users List Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
 
     async updateUserById(data) {
-        try{  
+        try {
             const isUserExist = await this._userModel.findOne({
-                where:{
+                where: {
                     id: data.userId
                 }
             });
 
-            if(!isUserExist){
-                return {status: 'Error', message: `User with id ${data.userId} does not exist`}
+            if (!isUserExist) {
+                return { status: 'Error', message: `User with id ${data.userId} does not exist` }
             }
 
-            
+
             const updateFields = {};
             if (data.name) {
                 updateFields.name = data.name;
@@ -318,14 +370,14 @@ export class adminService extends baseService {
                 message: 'User Updated Successfully!'
             };
         }
-        catch(err){
+        catch (err) {
             throw new Error(err.message);
         }
     }
 
 
-    async getWeeklyTopTenList(req){
-        try{
+    async getWeeklyTopTenList(req) {
+        try {
             global.appLogger.info(`[Start] Fetching Weekly Top Ten List Api \n`);
             let query = `WITH weeks AS (
                     SELECT DISTINCT TO_CHAR(
@@ -356,25 +408,25 @@ export class adminService extends baseService {
             SELECT
                 json_agg(past_weeks) AS weeks,
                 (SELECT COUNT(*) FROM ordered_weeks) AS "records_count"
-            FROM paged_weeks`;                                
+            FROM paged_weeks`;
 
             const results = await sequelize.query(query, {
                 type: sequelize.QueryTypes.SELECT
-            });  
+            });
 
             global.appLogger.info(`[End] Successfully Fetched Weekly Top Ten List Api \n`);
             return results;
 
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Fetching Weekly Top Ten List Api ${err.message} \n`);
             throw new Error(err.message);
         }
     }
 
 
-    async downloadWeeklyTopTen(req, res){
-        try{
+    async downloadWeeklyTopTen(req, res) {
+        try {
             let errorMessage = `Something went wrong while dowloading Weekly Top Ten`;
             global.appLogger.info(`[Start] Downloading Weekly Top Ten Api \n`);
 
@@ -382,7 +434,7 @@ export class adminService extends baseService {
                       AND p."createdAt"::timestamp AT TIME ZONE 'America/New_York' <= date_trunc('week', TIMESTAMP :weekDate AT TIME ZONE 'America/New_York') - interval '1 microsecond')
                       AND (v."createdAt" AT TIME ZONE 'America/New_York' >= date_trunc('week', TIMESTAMP :weekDate AT TIME ZONE 'America/New_York') - interval '1 week' 
                            AND v."createdAt" AT TIME ZONE 'America/New_York' <= date_trunc('week', TIMESTAMP :weekDate AT TIME ZONE 'America/New_York') - interval '1 microsecond')`;
-                    
+
             let query = `SELECT
                     (SELECT jsonb_agg(p."compressedImageUrl") as most_upvoted_photos 
                     FROM (
@@ -400,47 +452,47 @@ export class adminService extends baseService {
                   ) AS p
                   JOIN "Users" u ON u.id = p.user_id
                   WHERE u."isBlocked"= false)`;
-                
+
             const results = await sequelize.query(query, {
-                    type: sequelize.QueryTypes.SELECT,
-                    replacements: { weekDate: req.body.weekDate}
+                type: sequelize.QueryTypes.SELECT,
+                replacements: { weekDate: req.body.weekDate }
             });
-            
+
             const photoUrls = results[0]['most_upvoted_photos'];
             if (!photoUrls || photoUrls.length === 0) {
-                return res.status(404).json({ status:'Error', message: 'No photos found for the selected week.' });
+                return res.status(404).json({ status: 'Error', message: 'No photos found for the selected week.' });
             }
             res.setHeader('Content-Type', 'application/zip');
             res.setHeader('Content-Disposition', `attachment; filename="${req.body.fileName}.zip"`);
             const archive = archiver('zip', { zlib: { level: 9 } });
-    
+
             archive.on('error', (err) => {
                 global.appLogger.error(`[Archive Error] ${err.message}`);
-                res.status(500).json({  status:'Error', message: errorMessage });
-            });  
-            archive.pipe(res);  
-    
+                res.status(500).json({ status: 'Error', message: errorMessage });
+            });
+            archive.pipe(res);
+
             for (const [index, url] of photoUrls.entries()) {
                 try {
-                        const response = await axios({
-                            method: 'GET',
-                            url,
-                            responseType: 'stream'
-                        });
-        
-                        const fileName = path.basename(url);
-                        archive.append(response.data, { name: fileName });
+                    const response = await axios({
+                        method: 'GET',
+                        url,
+                        responseType: 'stream'
+                    });
+
+                    const fileName = path.basename(url);
+                    archive.append(response.data, { name: fileName });
                 }
                 catch (err) {
                     global.appLogger.error(`[Photo Streaming Error] ${err.message}`);
                 }
             }
-    
-            await archive.finalize(); 
+
+            await archive.finalize();
             global.appLogger.info(`[End] Successfully Downloaded Weekly Top Ten Api`);
             return;
         }
-        catch(err){
+        catch (err) {
             global.appLogger.error(`[Error] Downloading WeeklyTopTen Api ${err.message} \n`);
             throw new Error(err.message);
         }

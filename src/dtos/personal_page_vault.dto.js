@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsIn, IsOptional, IsInt, IsUUID, ValidateIf, IsArray } from 'class-validator';
 import 'reflect-metadata';
 
 
@@ -9,12 +9,31 @@ export class uploadPhotosToS3Dto{
 
     @IsOptional()
     folderId;
+
+    
+    @IsNotEmpty()
+    @IsString()
+    photoCount;
 }
+
+
+export class deleteVaultPhotosDto{
+    @IsNotEmpty()
+    @IsArray()
+    photosId;
+
+}
+
 
 export class photoVaultLogsDto{
      @IsInt()
      @IsNotEmpty()
      offSet;
+
+
+     @IsInt()
+     @IsOptional()
+     limit;
 }
 
 
@@ -37,11 +56,6 @@ export class updateFolderDto {
 
 }
 
-export class getFoldersListDto {
-     @IsInt()
-     @IsNotEmpty()
-     offSet;
-}
 
 export class getPhotosListDto {
     @IsNotEmpty()
@@ -51,7 +65,31 @@ export class getPhotosListDto {
 
     @IsInt()
     @IsNotEmpty()
-    offSet;     
+    offSet;   
+    
+    
+    @IsInt()
+    @IsOptional()
+    limit;
+
+
+    @IsNotEmpty()
+    @IsIn(['date','name', 'size', 'fileType'])
+    sortingType;
+
+
+    @IsNotEmpty()
+    @ValidateIf((o => o.sortingType === 'date'))
+    @IsIn(['ASC', 'DESC'])
+    sortOrder;
+}
+
+
+
+export class downloadBackBlazePhotosDto{
+    @IsNotEmpty()
+    @IsString()
+    folderId;
 }
 
 
@@ -64,5 +102,9 @@ export class uploadPhotosToVaultDto {
     @IsNotEmpty()
     @IsString()
     batchId;
+
+    @IsNotEmpty()
+    @IsInt()
+    photoCount;
 }
 

@@ -7,6 +7,14 @@ export class notifyUserDto {
     offset;
 }
 
+
+export class AddNotificationViewCountDto {
+    @IsString()
+    @IsNotEmpty()
+    notificationId;
+}
+
+
 export class sendthanksDto{
     @IsString()
     @IsNotEmpty()

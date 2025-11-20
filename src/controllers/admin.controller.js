@@ -1,7 +1,10 @@
 import baseController from "./base.controller"
-import { validationMiddleware, userRoleMiddleware } from '../middleware';
+import { validationMiddleware, userRoleMiddleware, authMiddleware } from '../middleware';
 import { AdminLoginDto, getUsersListDto, updateUserByIdDto, getWeeklyTopTenListDto, 
-    downloadWeeklyTopTenDto, UserNotificationDto, fetchUserNotificationDto, updateActivityPageCalloutDto } from "../dtos";
+    downloadWeeklyTopTenDto, UserNotificationDto, fetchUserNotificationDto, updateActivityPageCalloutDto,
+    stopUserNotificationDto 
+} from "../dtos";
+
 
 class adminController extends baseController {
 
@@ -16,8 +19,15 @@ class adminController extends baseController {
         this.router.post(`${this.parentRouterPath}/updateUser`, validationMiddleware(updateUserByIdDto), this.updateUserById)
         this.router.post(`${this.parentRouterPath}/weeklyTopTenList`, validationMiddleware(getWeeklyTopTenListDto), this.getWeeklyTopTenList)
         this.router.post(`${this.parentRouterPath}/downloadWeeklyTopTen`, validationMiddleware(downloadWeeklyTopTenDto), this.downloadWeeklyTopTen)
+        
+        // Admin User Notifications APIs
         this.router.post(`${this.parentRouterPath}/addUserNotifications`, validationMiddleware(UserNotificationDto), userRoleMiddleware(), this.AddUserNotifications)
         this.router.post(`${this.parentRouterPath}/fetchUserNotifications`, validationMiddleware(fetchUserNotificationDto), userRoleMiddleware(), this.fetchUserNotifications)
+        this.router.post(`${this.parentRouterPath}/stopUserNotification`, validationMiddleware(stopUserNotificationDto), userRoleMiddleware(), this.stopUserNotification)
+
+
+
+        // Activity Page Callout APIs
         this.router.post(`${this.parentRouterPath}/fetchActivityCallout`, this.fetchActivityPageCallout)
         this.router.post(`${this.parentRouterPath}/updateActivityCallout`, validationMiddleware(updateActivityPageCalloutDto), userRoleMiddleware(), this.updateActivityPageCallout)
     }
@@ -97,6 +107,21 @@ class adminController extends baseController {
         }
     }
 
+
+    stopUserNotification = async (req, res, next) => {
+        try {            
+                const data = await this._adminService.StopUserNotification(req)
+                if (data && data.status == "Error") {
+                    res.status(404).send(this._responseTemplate('Error', undefined, data.message))
+                } 
+                else {
+                    res.status(200).send(this._responseTemplate('Success', data, undefined))
+                }
+        } 
+        catch (error) {
+            next(error)
+        }
+    }
 
 
 

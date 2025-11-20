@@ -809,7 +809,6 @@ async function sendUnviewedNotificationEmail(){
 
 
 
-
 cron.schedule('30 12 * * 6', () => {
   // run every Saturday at 12:30 PM UTC
   sendUnviewedNotificationEmail();
@@ -1413,6 +1412,190 @@ async function bottom50PercentUpvotesTaggingJob(){
 scheduled: true,
 timezone: 'UTC' 
 });
+
+
+async function sendVaultMonthlyAuditEmail() {
+  try{
+
+        const query = `WITH user_photo_stats AS (
+            SELECT pw.user_id, usr.email, pw.user_name, split_part(pw.user_name, ' ', 1) AS first_name,
+                  SUM(
+                    CASE 
+                      WHEN p."actionType" = 'Upload' THEN p."fileCount" 
+                      ELSE 0 
+                    END
+                  ) AS total_photos_stored,
+                  SUM(
+                    CASE 
+                      WHEN p."actionType" = 'Upload'
+                      AND DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+                      THEN p."fileCount"
+                      ELSE 0
+                    END
+                  ) AS photos_uploaded_this_month,
+                  SUM(
+                    CASE 
+                      WHEN p."actionType" = 'Upload'
+                      AND DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')
+                      THEN p."fileCount"
+                      ELSE 0
+                    END
+                  ) AS photos_uploaded_last_month,
+                  SUM(
+                    CASE 
+                      WHEN p."actionType" = 'Download'
+                      AND DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+                      THEN p."fileCount"
+                      ELSE 0
+                    END
+                  ) AS photos_downloaded_this_month,
+                  COUNT(
+                    CASE 
+                      WHEN p."actionType" = 'Deleted'
+                      AND DATE_TRUNC('month', p."createdAt") = DATE_TRUNC('month', CURRENT_DATE)
+                      THEN 1 
+                    END
+                  ) AS photos_deleted_this_month,
+                  TO_CHAR(
+                      MAX(
+                        CASE 
+                          WHEN p."actionType" = 'Upload' THEN p."createdAt"
+                          ELSE NULL
+                        END
+                      ),
+                      'MM-DD-YYYY HH24:MI'
+                  ) AS last_uploaded_date,
+                  TO_CHAR(
+                    MAX(
+                      CASE 
+                        WHEN p."actionType" = 'Download' THEN p."createdAt"
+                        ELSE NULL
+                      END
+                    ),
+                    'MM-DD-YYYY HH24:MI'
+                  ) AS last_downloaded_date,
+                  MIN(
+                      CASE 
+                        WHEN p."actionType" = 'Upload' THEN p."createdAt"
+                      END
+                  ) AS first_upload_date
+              FROM "Personal_Websites" pw
+              INNER JOIN "Users" usr ON pw.user_id = usr.id
+              INNER JOIN "photo_vault_logs" p ON pw.user_id = p.user_id
+              WHERE pw.is_monthly_file_audit_email = true
+              GROUP BY pw.user_id, usr.email, pw.user_name
+              HAVING SUM(
+                  CASE WHEN p."actionType" = 'Upload' THEN p."fileCount" ELSE 0 END
+              ) >= 25
+          )
+
+
+          SELECT *, (photos_uploaded_this_month - photos_uploaded_last_month) AS change_from_last_month,
+           TRIM(
+              CASE
+                WHEN DATE_PART('year', AGE(NOW(), first_upload_date)) >= 1 THEN
+                  DATE_PART('year', AGE(NOW(), first_upload_date))::int || ' year' ||
+                    CASE WHEN DATE_PART('year', AGE(NOW(), first_upload_date))::int > 1 THEN 's ' ELSE ' ' END ||
+                  DATE_PART('month', AGE(NOW(), first_upload_date))::int || ' month' ||
+                    CASE WHEN DATE_PART('month', AGE(NOW(), first_upload_date))::int > 1 THEN 's' ELSE '' END
+
+                WHEN DATE_PART('month', AGE(NOW(), first_upload_date)) >= 1 THEN
+                  DATE_PART('month', AGE(NOW(), first_upload_date))::int || ' month' ||
+                    CASE WHEN DATE_PART('month', AGE(NOW(), first_upload_date))::int > 1 THEN 's' ELSE '' END
+
+                WHEN DATE_PART('day', AGE(NOW(), first_upload_date)) >= 1 THEN
+                  DATE_PART('day', AGE(NOW(), first_upload_date))::int || ' day' ||
+                    CASE WHEN DATE_PART('day', AGE(NOW(), first_upload_date))::int > 1 THEN 's' ELSE '' END
+
+                WHEN DATE_PART('hour', AGE(NOW(), first_upload_date)) >= 1 THEN
+                  DATE_PART('hour', AGE(NOW(), first_upload_date))::int || ' hour' ||
+                    CASE WHEN DATE_PART('hour', AGE(NOW(), first_upload_date))::int > 1 THEN 's' ELSE '' END
+
+                ELSE
+                  'less than an hour'
+              END
+            ) AS vault_usage_duration
+          FROM user_photo_stats`;
+
+        const users = await sequelize.query(query, {
+            type: sequelize.QueryTypes.SELECT,
+        });
+
+        for(const user of users){
+             const template= {
+                from_email:'support@example.com', 
+                from_name: "Photo Contest Vault", 
+                to_name: `${user.user_name}`,
+                to_email:  `${user.email}`,
+                subject:'VAULT - Monthly Audit Email', 
+                body:`<p>Hi ${user.first_name} —
+                        <br><br> Each month, we send you this Photo Contest Vault Audit — a quick snapshot of the photos you have 
+                                stored in the Vault so you can stay confident knowing your photos 
+                                are safe and sound in the cloud.
+                        <br><br> (Just a reminder: you can turn these emails on or off anytime in your [Vault settings].)
+                        <br><br> You've been using the Vault for ${user.vault_usage_duration}. Here's your current status:
+                        <br> &bull;  Total Photos Stored: ${user.total_photos_stored}
+                        <br> &bull; Change from Last Month: ${user.change_from_last_month}
+                        <br> &bull; Photos Uploaded This Month: ${user.photos_uploaded_this_month}
+                        <br> &bull; Photos Downloaded This Month: ${user.photos_downloaded_this_month}
+                        <br> &bull; Photos Deleted This Month: ${user.photos_deleted_this_month}
+                        <br> &bull; Last Upload: ${user.last_uploaded_date}
+                        <br> &bull; Last Download: ${user.last_downloaded_date}
+                        <br><br> All of your photos are secure and fully backed up in the Photo Contest Vault. 
+                            No action is needed.
+                        <br><br> It's always smart to keep an off-site backup. If you've taken new shots you're proud of, 
+                            now's a great time to upload and keep your archive up to date.
+                        <br><br> 👉 [Add More Photos to Your Vault]
+                        <br><br> We 'll send your next audit in a month. If you'd rather not receive these, you can toggle them off in your [Vault settings].
+                        <br><br> Thanks for being part of the Photo Contest!
+                        <br> — The Photo Contest Gang
+                      </p>`
+              }
+              await sendEmail(template);
+              global.appLogger.info(`Successfully Send Monthly Audit Email To User ${user.user_id} \n`);
+        }
+
+        global.appLogger.info(`[End] Successfully Send Monthly Audit Email To All Users.`);
+
+  }
+  catch(err){
+      global.appLogger.error(`[Error] Sending Vault Monthly Audit Email \n ${err.message} \n`)
+  }
+  
+}
+
+// runs at every friday at 1am UTC
+cron.schedule('0 1 * * 5', async () => {
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = now.getUTCMonth();
+
+    // Calculate the last Friday of the current month
+    const lastDayOfMonth = new Date(Date.UTC(year, month + 1, 0)); // last day of current month
+    const dayOfWeek = lastDayOfMonth.getUTCDay(); // 0 = Sun, 5 = Fri
+    const offset = (dayOfWeek >= 5) ? dayOfWeek - 5 : dayOfWeek + 2; // days to subtract
+    const lastFriday = new Date(lastDayOfMonth);
+    lastFriday.setUTCDate(lastDayOfMonth.getUTCDate() - offset);
+
+    // Check if today is that last Friday
+    const isLastFriday =
+      now.getUTCDate() === lastFriday.getUTCDate() &&
+      now.getUTCMonth() === lastFriday.getUTCMonth();
+
+  if (isLastFriday) {
+      global.appLogger.info(`[Start] Running Monthly Audit Email Job on ${now.toUTCString()}`);
+    try {
+        await sendVaultMonthlyAuditEmail();
+    } 
+    catch (err) {
+        global.appLogger.error(`[Error] Monthly Audit Email \n ${err.message} \n`);
+    }
+  }
+}, {
+  scheduled: true,
+  timezone: 'UTC',
+});
+
 
 
 server.listen(PORT, () => {

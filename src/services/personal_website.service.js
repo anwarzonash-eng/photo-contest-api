@@ -572,7 +572,7 @@ export class personalWebsiteService extends baseService {
                  
                 const updatedPersonalSite = await this._personalWebsiteModel.update({
                    user_name: req.body?.user_name || personalWebsite?.user_name,
-                   user_bio: req.body?.user_bio || personalWebsite?.user_bio,
+                   user_bio: req.body?.user_bio ?? personalWebsite?.user_bio,
                    facebook_link: req.body?.facebook_link || personalWebsite?.facebook_link,
                    twitter_link: req.body?.twitter_link || personalWebsite?.twitter_link,
                    instagram_link: req.body?.instagram_link || personalWebsite?.instagram_link,

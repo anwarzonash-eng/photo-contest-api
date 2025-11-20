@@ -134,7 +134,9 @@ export class ListPhotosDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsIn(['by_recent_users','last_week', 'by_recent_photos', 'leader_board', 'this_week','following', 'new_to_you', 'participating_members'])
+  @IsIn(['by_recent_users','last_week', 'by_recent_photos', 'leader_board', 'this_week','following', 'new_to_you', 'participating_members', 
+    'coming_next_photos'
+  ])
   sortingType;
 
   @IsInt()
@@ -255,6 +257,15 @@ export class UserPhotosDto{
   @IsString()
   @IsOptional()
   profile;
+
+
+  @IsOptional()
+  @IsIn(['all', 'user'])
+  userType;
+
+  
+  @IsOptional()
+  batchId;
 }
 
 

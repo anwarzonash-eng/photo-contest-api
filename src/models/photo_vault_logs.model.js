@@ -13,6 +13,10 @@ const PhotoVaultLogsModel = sequelize.define('photo_vault_logs', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    batch_id:{
+        type: DataTypes.UUID,
+        allowNull: false
+    },
     actionType:{
         type: DataTypes.STRING,
         allowNull: false

@@ -1,52 +1,83 @@
-import {IsString, IsNotEmpty, IsInt, IsOptional, IsIn, IsUrl, ValidateIf} from 'class-validator';
+import {
+  IsString, IsNotEmpty, IsInt, IsOptional, IsIn, IsUrl, ValidateIf, IsArray,
+  ArrayNotEmpty, ValidateNested, IsBoolean
+} from 'class-validator';
 import 'reflect-metadata';
+import { Type, Transform } from 'class-transformer';
 
 
 export class AdminLoginDto {
-    @IsString()
-    @IsNotEmpty()
-    email;
-  
-    @IsString()
-    @IsNotEmpty()
-    password;
+  @IsString()
+  @IsNotEmpty()
+  email;
+
+  @IsString()
+  @IsNotEmpty()
+  password;
 }
 
-export class updateActivityPageCalloutDto{
+export class updateActivityPageCalloutDto {
   @IsNotEmpty()
   @IsString()
   id;
 
 
-  @IsString() 
+  @IsString()
   @IsNotEmpty()
   title;
 
 
-  @IsString() 
+  @IsString()
   @IsNotEmpty()
-  subTitle;   
+  subTitle;
 
 
-  @IsString() 
+  @IsString()
   @IsNotEmpty()
   CTA;
 
 
-  @IsUrl() 
+  @IsUrl()
   @IsNotEmpty()
   CTA_Url;
 }
 
 
 
-export class UserNotificationDto{
+export class stopUserNotificationDto {
+  @IsString()
+  @IsNotEmpty()
+  notificationId;
+
+
+  @IsNotEmpty()
+  @IsBoolean()
+  isStopped;
+}
+
+
+class TargetConditionDto {
+  @IsString()
+  @IsNotEmpty()
+  type;
+
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  value;
+}
+
+
+
+
+export class UserNotificationDto {
   @IsOptional()
   @IsString()
   notificationId;
 
 
-  @IsString()  
+  @IsString()
   @IsNotEmpty()
   message;
 
@@ -57,7 +88,7 @@ export class UserNotificationDto{
 
 
   @IsOptional()
-  @IsUrl()
+  @IsString()
   btnUrl;
 
 
@@ -76,6 +107,8 @@ export class UserNotificationDto{
   @IsIn(['never', 'scheduled'])
   expirationType;
 
+  @IsOptional()
+  photo_url;
 
   @IsString()
   @ValidateIf((e => e.expirationType === 'scheduled'))
@@ -87,13 +120,29 @@ export class UserNotificationDto{
   @IsString()
   shownNoOfTimes;
 
-  
+
+
   @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TargetConditionDto)
+  @Transform(({ value }) => {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch {
+        return [];
+      }
+    }
+    return value;
+  })
   target_conditions;
 }
 
 
-export class fetchUserNotificationDto{
+export class fetchUserNotificationDto {
   @IsInt()
   @IsNotEmpty()
   offSet;
@@ -108,7 +157,7 @@ export class fetchUserNotificationDto{
 
 
 
-export class getUsersListDto{
+export class getUsersListDto {
   @IsInt()
   @IsNotEmpty()
   offSet;
@@ -137,7 +186,7 @@ export class getUsersListDto{
 }
 
 
-export class updateUserByIdDto{
+export class updateUserByIdDto {
   @IsString()
   @IsNotEmpty()
   userId;
@@ -153,7 +202,7 @@ export class updateUserByIdDto{
 }
 
 
-export class downloadWeeklyTopTenDto{
+export class downloadWeeklyTopTenDto {
   @IsString()
   @IsNotEmpty()
   fileName;
@@ -164,12 +213,12 @@ export class downloadWeeklyTopTenDto{
 }
 
 
-export class getWeeklyTopTenListDto{
+export class getWeeklyTopTenListDto {
   @IsInt()
   @IsNotEmpty()
   offSet;
 
-  
+
   @IsInt()
   @IsNotEmpty()
   limit;

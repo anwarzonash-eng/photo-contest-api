@@ -13,6 +13,7 @@ class authController extends baseController {
 
     initializeRouter() {
         this.router.post(`${this.parentRouterPath}/registeruser`, validationMiddleware(CreateUserDto), this.registerUser)
+        this.router.post(`${this.parentRouterPath}/upvoteByBatch`, this.upvoteByBatch)
         this.router.post(`${this.parentRouterPath}/login`, validationMiddleware(LogInUserDto), this.login)
         this.router.post(`${this.parentRouterPath}/user`, validationMiddleware(GetSingleUserByEmailDto), this.checkUserExistenceByEmail)
         this.router.post(`${this.parentRouterPath}/me`, validationMiddleware(GetSingleUserByEmailDto), this.getUserProfileByEmail)
@@ -40,6 +41,22 @@ class authController extends baseController {
         }
 
     }
+
+    
+    upvoteByBatch = async (req, res, next) => {
+        try {
+            const user = await this._authService.addCommentsByBatchId(req.body.userId, req.body.batchId)
+            if (user && user.status=="Error") {
+                res.status(404).send(this._responseTemplate('Error', undefined, user.message))
+            } else {
+                res.status(200).send(this._responseTemplate('Success', user, undefined))
+            }
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
 
 
     login = async (req, res, next) => {
@@ -103,7 +120,9 @@ class authController extends baseController {
 
     checkUserExistenceByEmail  = async (req, res, next) => {
         try {
-            const user = await this._authService.checkUserExistenceByEmail(req.body.email, req.body.referral_code, req.body.userType)
+
+            let {email, referral_code, userType, batchId } = req.body;
+            const user = await this._authService.checkUserExistenceByEmail(email, referral_code, userType, batchId);
             if (user) {
                 if(user.message){
                     res.status(400).send(this._responseTemplate('Error', undefined, user.message))
