@@ -342,10 +342,64 @@ cron.schedule('15 0 * * *', () => {
       catch(err){
           global.appLogger.error(`[Error] Decrementing Queued Photos ${err.message} \n`);
       }
+
+      try{
+                  
+            let timeZone = moment_timezone.tz('America/New_York');                           
+            let startOfWeek = timeZone.clone().startOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD HH:mm:ssZ');
+            let endOfWeek = timeZone.clone().endOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD HH:mm:ssZ');
+        
+            let where = `p."createdAt" BETWEEN :startOfWeek AND :endOfWeek
+                            AND v."createdAt" BETWEEN :startOfWeek AND :endOfWeek`
+        
+                       
+            let query = `SELECT p.id
+              FROM "Photos" p 
+              INNER JOIN "Votes" v ON p.id = v.photo_id
+              INNER JOIN "Users" u ON u.id = p.user_id AND u."isBlocked" = false
+              WHERE  ${where}
+              AND p."isDeleted" = false AND p."isQueued" = false
+              AND p.user_id NOT IN (
+                Select id from "Users" where "email" like '%admin@example.com%'
+              )
+              GROUP BY p.id
+              ORDER BY 
+              ( 
+                  Select count(*) 
+                  from "Votes" v inner join "Photos" p1 
+                  on p1."id"= v."photo_id"
+                  where photo_id= p.id and ${where}
+              ) DESC,
+              MAX(v."createdAt") DESC
+              LIMIT 10`;
+             
+              const topTenPhotos = await sequelize.query(query, {
+                  type: sequelize.QueryTypes.SELECT,
+                  replacements: { startOfWeek, endOfWeek}
+              });
+
+             
+              const photoIds = topTenPhotos.map(p => p.id);
+              if(photoIds){
+                      await PhotoModel.update({
+                          isWeeklyTopTen: true,                 
+                      }, {
+                          where:{
+                              id: {
+                                [Op.in]: photoIds
+                              }
+                          }
+                      });
+              }
+                    
+              global.appLogger.info(`Weekly Top Ten of week ${startOfWeek} updated successfully`);
+      }
+      catch(err){
+          global.appLogger.error(`[Error] Updating Weekly Top Ten ${err.message}`)
+      }
   }
 
 
-    
   cron.schedule('0 0 * * 1', () => {
     // 12:00 AM GMT-5 run every Monday
     decrementWeekDays();
@@ -1488,6 +1542,7 @@ async function sendVaultMonthlyAuditEmail() {
                   CASE WHEN p."actionType" = 'Upload' THEN p."fileCount" ELSE 0 END
               ) >= 25
           )
+              
 
 
           SELECT *, (photos_uploaded_this_month - photos_uploaded_last_month) AS change_from_last_month,
@@ -1566,6 +1621,7 @@ async function sendVaultMonthlyAuditEmail() {
 
 // runs at every friday at 1am UTC
 cron.schedule('0 1 * * 5', async () => {
+
     const now = new Date();
     const year = now.getUTCFullYear();
     const month = now.getUTCMonth();

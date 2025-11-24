@@ -89,7 +89,7 @@ const PhotoModel = sequelize.define('Photo', {
     },
     isWeeklyTopTen:{
         type: DataTypes.BOOLEAN,
-        allowNull: true,
+        allowNull: false,
         defaultValue: false
     },
     createdAt: {
