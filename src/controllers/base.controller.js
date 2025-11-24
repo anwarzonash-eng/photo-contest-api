@@ -14,7 +14,6 @@ import { townhallService } from "../services/townhall.service.js";
 import { personalPageFollowersService } from "../services/personalPageFollowers.service.js";
 import { personalPageVaultService } from "../services/personalPageVault.service.js";
 
-
 class baseController {
 
     router;
@@ -33,6 +32,7 @@ class baseController {
     _townhallService;
     _personalPageFollowersService;
     _personalPageVaultService;
+    _aiReportService;
 
 
     constructor(routerPath){
@@ -53,6 +53,7 @@ class baseController {
         this._townhallService = new townhallService()
         this._personalPageFollowersService = new personalPageFollowersService()
         this._personalPageVaultService = new personalPageVaultService()
+        this._aiReportService = new AIReportsService()
         
         this._responseTemplate = responseTemplate;
 

@@ -87,6 +87,11 @@ const PhotoModel = sequelize.define('Photo', {
         allowNull: true,
         defaultValue:null
     },
+    isWeeklyTopTen:{
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false
+    },
     createdAt: {
         type: DataTypes.STRING, 
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"), 

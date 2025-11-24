@@ -27,6 +27,7 @@ export const controllers = function name() {
         new personalWebsiteController(),
         new townhallController(),
         new personalPageFollowersController(),
-        new personalPageVaultController()
+        new personalPageVaultController(),
+        new AIReportsController()
     ]
 }

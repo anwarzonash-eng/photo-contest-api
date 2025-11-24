@@ -35,6 +35,6 @@ export default {
     BackBlaze_Region: process.env.BackBlaze_Region,
     BackBlaze_B2_Key: process.env.BackBlaze_B2_Key,
     BackBlaze_App_Key: process.env.BackBlaze_App_Key,
-    BackBlaze_Bucket: process.env.BackBlaze_Bucket
+    BackBlaze_Bucket: process.env.BackBlaze_Bucket,
 
 }
