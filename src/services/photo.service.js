@@ -1945,8 +1945,10 @@ export class photoService extends baseService {
               SELECT TO_CHAR(DATE(date_trunc('week', current_date AT TIME ZONE 'America/New_York')), 'MM.DD.YYYY') AS past_weeks
           ) AS weeks
           ORDER BY past_weeks::date DESC
-          LIMIT 10
+     
           ) AS past_weeks`;
+
+          //     LIMIT 10
 
         const results = await sequelize.query(query, {
                 type: sequelize.QueryTypes.SELECT,
