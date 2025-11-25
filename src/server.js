@@ -832,8 +832,10 @@ async function sendUnviewedNotificationEmail(){
           type: sequelize.QueryTypes.SELECT
         });
 
+        global.appLogger.info(`\n ----- Start Unviewed Notification Interest for users count ${usersList.length} -----`);
+
         if(usersList.length){      
-            global.appLogger.info(`\n ----- Start Executing Unviewed Notification Interest  -----`);
+            global.appLogger.info(`\n ----- Start Executing Unviewed Notification Interest for users count ${usersList.length}-----`);
             const interests = await findOrCreateInterest('BPH Master: User Profile Completions', 'Activity_Page_Notification');
             if(interests){
               for(let i=0; i< usersList.length; i++){
