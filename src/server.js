@@ -105,7 +105,7 @@ async function sendPhotoPostNotification(){
                     { where: { user_id: userPhotos[i].user_id, id: userPhotos[i].id } 
                   });  
 
-                  await updateHuntScorePoints(userPhotos[i].user_id, 'queued_photo_post', 3);
+                  await updateHuntScorePoints(userPhotos[i].user_id, 'posted_photo', 3);
                   await incrementHuntScorePoints(userPhotos[i].user_id, 3);
 
                   let template = {
@@ -139,7 +139,7 @@ async function sendPhotoPostNotification(){
                     weekDay: null}, 
                     { where: { user_id: userPhotos[i].user_id, id: userPhotos[i].id } });  
 
-                  await updateHuntScorePoints(userPhotos[i].user_id, 'queued_photo_post', 3);
+                  await updateHuntScorePoints(userPhotos[i].user_id, 'posted_photo', 3);
                   await incrementHuntScorePoints(userPhotos[i].user_id, 3);
 
                   const isQueuedPhotos = await PhotoModel.findAll({
