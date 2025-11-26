@@ -819,49 +819,61 @@ cron.schedule('5 1 * * 1', () => {
 
 async function sendUnviewedNotificationEmail(){
     try{
-        let query = `SELECT DISTINCT u."id", u."member_id"
-        FROM "Users" u INNER JOIN "notifications" n ON u."id" = n."receiver_id"
-        WHERE 
-        (Select count(*) from "notifications" where "text"='regular' and "receiver_id"=u."id" and "is_seen"=false) >=1 
-        AND (u."createdAt"::timestamp with time zone < (CURRENT_TIMESTAMP - INTERVAL '2 days')) 
-        AND (u."activity_viewed" IS NULL OR (u."activity_viewed"::timestamp with time zone < (CURRENT_TIMESTAMP - INTERVAL '2 days')))
-        GROUP BY u.id
-        HAVING COUNT(n.id) > 0`;
+        let offset = 0; 
+        const limit = 500;
+        const secretKey = await getSecrets();
+        const mailchimpListId = secretKey.listId;
 
-        const usersList = await sequelize.query(query, {
-          type: sequelize.QueryTypes.SELECT
-        });
+        while (true) {      
+          let query = `SELECT DISTINCT u."id", u."member_id"
+          FROM "Users" u INNER JOIN "notifications" n ON u."id" = n."receiver_id"
+          WHERE 
+            (Select count(*) from "notifications" where "text"='regular' and "receiver_id"=u."id" and "is_seen"=false) >=1 
+            AND (u."createdAt"::timestamp with time zone < (CURRENT_TIMESTAMP - INTERVAL '2 days')) 
+            AND (u."activity_viewed" IS NULL OR (u."activity_viewed"::timestamp with time zone < (CURRENT_TIMESTAMP - INTERVAL '2 days')))
+          GROUP BY u.id
+          HAVING COUNT(n.id) > 0
+          OFFSET ${offset}
+          LIMIT ${limit}`;
 
-        global.appLogger.info(`\n ----- Start Unviewed Notification Interest for users count ${usersList.length} -----`);
+          const usersList = await sequelize.query(query, {
+            type: sequelize.QueryTypes.SELECT
+          });
 
-        if(usersList.length){      
-            global.appLogger.info(`\n ----- Start Executing Unviewed Notification Interest for users count ${usersList.length}-----`);
+          if (!usersList.length) {
+            global.appLogger.info(`\n ----- [End]  Unviewed Notification Interest No more users found. -----`);
+            break;
+          }
+
+           global.appLogger.info(`\n ----- Start Unviewed Notification Interest for ${usersList.length} users (offset=${offset}) -----`);
+
+  
             const interests = await findOrCreateInterest('BPH Master: User Profile Completions', 'Activity_Page_Notification');
             if(interests){
               for(let i=0; i< usersList.length; i++){
                   try{
-                      let currentInterests = await getMemberProfile(usersList[i].member_id);  
+                      let currentInterests = await getMemberProfile(usersList[i].member_id, mailchimpListId);  
                       if(currentInterests && currentInterests[interests.interestId] == false){
                           currentInterests[interests.interestId] = true;
-                          await updateMemberProfile(usersList[i].member_id, {interests: currentInterests});   
+                          await updateMemberProfile(usersList[i].member_id, {interests: currentInterests}, mailchimpListId);   
                           global.appLogger.info(`[End] User with member_id ${usersList[i].member_id} has assigned unviewed notification interest \n`);
                       }
                   }
                   catch(error){
                     global.appLogger.error(`[Error] Assigning Unviewed Notification Interest For MemberId ${usersList[i].member_id} ${error.message } \n`);
-                  }
+                   }
               }
             }
 
-            global.appLogger.info(`[End] Executed Unviewed Notification Interest \n`);
-        }
+            global.appLogger.info(`[End] Assigning Unviewed Notification Interest at offset ${offset}\n`);
 
+            offset += limit;                 
+        }
     }
     catch(err){ 
         global.appLogger.error(`[Error] Assigning Unviewed Notification Interest ${err.message } \n`);
     }
 }
-
 
 
 

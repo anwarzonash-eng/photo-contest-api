@@ -81,28 +81,36 @@ export async function getCurrentProfile(MEMBER_EMAIL) {
   }
 
   
-  export async function getMemberProfile(MEMBER_ID) {
+  export async function getMemberProfile(MEMBER_ID, listId) {
     try {
-      const secretKey = await getSecrets();
-      const listId = secretKey.listId;
-      if(MEMBER_ID){
-        const response = await mailchimp.lists.getListMember(listId, MEMBER_ID);
-        return response.interests;
-      }
-    } catch (error) {
+        if(!listId){
+          let secretKey = await getSecrets();
+          listId = secretKey.listId;
+        }
+      
+        if(MEMBER_ID){
+          const response = await mailchimp.lists.getListMember(listId, MEMBER_ID);
+          return response.interests;
+        }
+    } 
+    catch (error) {
       throw error;
     }
   }
  
 
 
-export async function updateMemberProfile(MEMBER_ID, data) {
+export async function updateMemberProfile(MEMBER_ID, data, listId) {
   try {
-    const secretKey = await getSecrets();
-    const listId = secretKey.listId;
-    const response = await mailchimp.lists.updateListMember(listId, MEMBER_ID, data);
-    return response;
-  } catch (error) {
+        if(!listId){
+          let secretKey = await getSecrets();
+          listId = secretKey.listId;
+        }
+        
+        const response = await mailchimp.lists.updateListMember(listId, MEMBER_ID, data);
+        return response;
+  } 
+  catch (error) {
        throw error;
   }
 }
