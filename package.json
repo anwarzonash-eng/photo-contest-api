@@ -14,7 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.940.0",
     "@aws-sdk/client-secrets-manager": "^3.529.1",
+    "@aws-sdk/s3-request-presigner": "^3.940.0",
     "@mailchimp/mailchimp_marketing": "^3.0.80",
     "@mailchimp/mailchimp_transactional": "^1.0.50",
     "archiver": "^7.0.1",
