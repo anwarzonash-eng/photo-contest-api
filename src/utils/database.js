@@ -7,7 +7,7 @@ export const sequelize = new Sequelize(Env.DB_string, { logging: false,  dialect
 },  timezone: 'America/New_York', 
 
 pool: {
-    max: 50,       // max number of connections in pool
+    max: 5,       // max number of connections in pool
     min: 0,        // min number of connections
     acquire: 30000, // max time (ms) to try getting connection before throwing
     idle: 10000,    // how long a connection stays idle before release
