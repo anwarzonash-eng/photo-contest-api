@@ -230,8 +230,7 @@ export class adminService extends baseService {
                     : `"${sortBy}" ${sortType}`;
 
 
-            const query = `
-                WITH user_stats AS (
+            const query = `WITH user_stats AS (
                     SELECT 
                         u."id",
                         u."account_status",
@@ -257,11 +256,15 @@ export class adminService extends baseService {
                                 FOR SHARE
                             )
                         ) AS is_personal_site,
+                        (SELECT website_url
+                                FROM "Personal_Websites"
+                                WHERE "user_id" = u."id"
+                        ) AS personal_website_url,
                         (SELECT COUNT(*) FROM "personal_photos" WHERE "user_id" = u."id" AND "isDeleted" = false AND "isActive" = true) AS personal_photo_count,
                         (Select count(*) from "personal_photos_vault" where "user_id"= u.id AND "isDeleted" = false and "status" = 'uploaded_to_BackBlaze') As vault_count,   
                         (Select count(*) from "Ai_Reports" where "user_id"= u.id) As reports_count,                                           
                         (SELECT COUNT(*) FROM  "personal_page_follow_relations" f
-                        WHERE f.follower_id = u."id" AND "is_follow" = true) as personal_page_followers_count,
+                        WHERE f.follower_id = u."id" AND f."is_follow" = true) as personal_page_followers_count,
                         (SELECT COUNT(*) FROM "Photos" WHERE "user_id" = u."id" AND "isDeleted" = false AND "isQueued" = false) as hunted,
                         (SELECT CASE 
                                     WHEN u."isPaid" = false THEN LEAST(
