@@ -7,12 +7,16 @@ export const sequelize = new Sequelize(Env.DB_string, { logging: false,  dialect
 },  timezone: 'America/New_York', 
 
 pool: {
-    max: 5,       // max number of connections in pool
+    max: 50,       // max number of connections in pool
     min: 0,        // min number of connections
     acquire: 30000, // max time (ms) to try getting connection before throwing
     idle: 10000,    // how long a connection stays idle before release
     evict: 1000,    // how often to check for idle connections
-  },})
+  },
+ retry: {
+    max: 3,  // Retry failed connections up to 3 times
+    timeout: 120000  // 5 second timeout between retries
+  }})
 
 // Set the timezone on the PostgreSQL server for each connection
 sequelize.afterConnect(async (connection) => {
