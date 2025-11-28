@@ -1,9 +1,9 @@
 import { Sequelize } from 'sequelize';
 import { Env } from "../config";
 
-export const sequelize = new Sequelize(Env.DB_string, { logging: true,  dialectOptions: {
+export const sequelize = new Sequelize(Env.DB_string, { logging: false,  dialectOptions: {
     useUTC: false, // Prevents Sequelize from converting dates to UTC
-     statement_timeout: 300000, // PostgreSQL: max 5minutes per query
+    statement_timeout: 300000, // PostgreSQL: max 5minutes per query
 },  timezone: 'America/New_York', 
 
 pool: {
