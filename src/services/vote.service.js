@@ -97,7 +97,6 @@ export class voteService extends baseService {
                                 global.appLogger.error(`[Error] Adding Mailchimp Interest for ${result[0].vote_count} Upvote Given ${err.message} \n`);    
                             }
 
-                           
                             try{
                                     
                                 if((result[0].vote_received == 50) && (result[0].email != result[0].upvoter_email)){

@@ -5,7 +5,7 @@ import { AdminLoginDto, getUsersListDto, updateUserByIdDto, getWeeklyTopTenListD
     stopUserNotificationDto 
 } from "../dtos";
 
-//admin Controller
+
 class adminController extends baseController {
 
     constructor() {

@@ -23,7 +23,7 @@ import { updateGalleryHuntScorePoints } from "./utils/genericFunctions.js";
 import { Op } from 'sequelize';
 import { getSecrets } from "./utils/secret-manager.js";
 import {updateBoostedPhotos} from './updateBoostPhotos.js';
-import { updateHuntScores } from './updateHuntScores.js';
+
 // Create a logs/payments directory
 const paymentLogDirectory = path.join(__dirname, 'logs', 'payments');
 const paymentLogger = createPaymentLogger(paymentLogDirectory);
@@ -40,7 +40,7 @@ class App {
 
     constructor() {
         this.app = express()
-      //  this.syncDatabase();
+        //this.syncDatabase();
        /*this.app.use(cors({
             origin: '*', 
             methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
@@ -695,7 +695,7 @@ class App {
             }  
         } 
 
-        //updateHuntScores();
+
      
         this.app.use(bodyParser.urlencoded({ extended: false }));
         this.app.use(bodyParser.json());
