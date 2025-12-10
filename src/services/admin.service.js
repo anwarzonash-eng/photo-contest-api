@@ -10,7 +10,7 @@ const uploadPhoto = require("../utils/aws/s3");
 import { photoOptimization } from "../utils/cloudinary/photo_optimization";
 const moment = require('moment');
 
-
+// admin service
 export class adminService extends baseService {
     async AdminLogin(email, userPassword) {
         try {
