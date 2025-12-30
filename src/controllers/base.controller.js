@@ -14,6 +14,7 @@ import { townhallService } from "../services/townhall.service.js";
 import { personalPageFollowersService } from "../services/personalPageFollowers.service.js";
 import { personalPageVaultService } from "../services/personalPageVault.service.js";
 
+
 class baseController {
 
     router;
@@ -33,6 +34,7 @@ class baseController {
     _personalPageFollowersService;
     _personalPageVaultService;
     _aiReportService;
+    _chatgptService;
 
 
     constructor(routerPath){
@@ -54,6 +56,7 @@ class baseController {
         this._personalPageFollowersService = new personalPageFollowersService()
         this._personalPageVaultService = new personalPageVaultService()
         this._aiReportService = new AIReportsService()
+        this._chatgptService = new chatgptService()
         
         this._responseTemplate = responseTemplate;
 

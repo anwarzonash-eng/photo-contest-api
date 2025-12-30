@@ -189,11 +189,6 @@ const UserModel = sequelize.define('User', {
         type:DataTypes.STRING,
         allowNull:true
     }, 
-    subscription_start_date: {
-        type: DataTypes.STRING,
-        allowNull: true,
-        defaultValue:null
-    },
     payment_frequency:{
         type:DataTypes.STRING,
         allowNull:true

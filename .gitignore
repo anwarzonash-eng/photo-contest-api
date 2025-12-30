@@ -3,6 +3,10 @@
 # dependencies
 /node_modules
 
+# build 
+/dist
+
+
 #env files
 .env
 
