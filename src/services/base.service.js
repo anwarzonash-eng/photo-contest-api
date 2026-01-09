@@ -5,7 +5,7 @@ import { UserModel, NotificationModel, PhotoModel, GalleryPhotoModel, PhotoClick
      PersonalPhotoUpvoteModel, PrevTownHallModel, MonthlyTownHallModel, PersonalPageFollowerModel, 
      PersonalPageFollowEventModel, PersonalPageFollowRelationModel, FoldersModel, PersonalPageVaultPhotosModel,
      PhotoVaultLogsModel, PhotoVaultBatchModel, AdminNotificationTemplateModel, ActivityCalloutModel, 
-     UserNotificationStatusModel, TempUserActionsModel, AiReportsModel
+     UserNotificationStatusModel, TempUserActionsModel, AiReportsModel, ReportPaymentsModel
 } from "../models";
 
 class baseService {    
@@ -41,6 +41,7 @@ class baseService {
     _userNotificationStatusModel;
     _tempUserActionsModel;
     _AiReportsModel;
+    _reportPaymentsModel;
 
 
     constructor(){
@@ -76,6 +77,7 @@ class baseService {
         this._userNotificationStatusModel = UserNotificationStatusModel;   
         this._tempUserActionsModel = TempUserActionsModel; 
         this._AiReportsModel = AiReportsModel;
+        this._reportPaymentsModel = ReportPaymentsModel;
     }
 }
 

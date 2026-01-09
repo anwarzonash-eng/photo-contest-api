@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsNotEmpty } from 'class-validator';
 import 'reflect-metadata';
 
 export class checkoutSessionDto {
@@ -10,3 +10,27 @@ export class checkoutSessionDto {
     @IsOptional()
     cancelUrl;
 }
+
+
+export class reportCheckoutSessionDto{
+    @IsNotEmpty()
+    @IsEmail()
+    @IsString()
+    email;
+
+
+    @IsNotEmpty()
+    @IsString()
+    photoId;
+
+
+    @IsString()
+    @IsOptional()
+    successUrl;
+
+
+    @IsString()
+    @IsOptional()
+    cancelUrl;
+}
+

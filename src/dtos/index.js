@@ -4,7 +4,7 @@ export { ListPhotosDto, ListPhotoLandingDto, ListPhotoNewMemberDto, PhotoByIdDto
 export { CreateUserDto, LogInUserDto, GetSingleUserByEmailDto, changePasswordDto, UserByIdDto, editProfileDto, uploadCoverPhotoDto, forgetPasswordDto, WelcomeUserDto, resetPasswordDto, ContactUsDto, updateLastVisitTimeDto, updateSubscriptionReasonDto, acceptedInviterInvitationDto } from "./user.dto.js";
 export {FollowUserDto, getFollowUserDto, followerUpvotedPhotoDto} from "./follow.dto.js";
 export {notifyUserDto, AddNotificationViewCountDto, sendthanksDto, notifyComingNextPhotosDto } from "./notification.dto.js";
-export {checkoutSessionDto} from "./payment.dto.js";
+export {checkoutSessionDto, reportCheckoutSessionDto} from "./payment.dto.js";
 export {AdminLoginDto, getUsersListDto, updateUserByIdDto, getWeeklyTopTenListDto, downloadWeeklyTopTenDto, UserNotificationDto, 
     fetchUserNotificationDto, stopUserNotificationDto, updateActivityPageCalloutDto
 } from "./admin.dto.js";

@@ -33,6 +33,7 @@ const appLogger = createAppLogger(appLogsDirectory);
 global.appLogger = appLogger;
 const schedule = require('node-schedule');
 const photoQueue =  new Map();
+import ReportPaymentsModel from "./models/report_payments.model.js";
 
 
 class App {
@@ -74,52 +75,61 @@ class App {
                     paymentLogger.error({ message: 'Webhook signature verification failed', error: err.message });
                     return res.status(400).send('Webhook signature verification failed');
                 }
+
+                
                 paymentLogger.info(`Received event type: ${event.type}`);
+                
+                const session = event.data.object;
+
+                paymentLogger.info(`Session Mode: ${session.mode}`);
 
                 switch (event.type) {
                     case 'invoice.created':
-                        paymentLogger.info({ 
-                            message: 'Inside invoice.created Event',
-                            event_type: event.type
-                        });
-           
-                        let Invoice = event["data"]["object"]; 
-                        try{                                                                   
-                            const updatedInvoice = await stripe.invoices.retrieve(Invoice.id);   
-                            paymentLogger.info({
-                                message: 'finalize invoice', 
-                                status: updatedInvoice.status
+                        if (session?.mode === 'subscription') {
+                            paymentLogger.info({ 
+                                message: 'Inside invoice.created Event',
+                                event_type: event.type
                             });
-
-                            if (updatedInvoice.status != 'paid' && updatedInvoice.status != 'open') {
-                                const finalizedInvoice = await stripe.invoices.finalizeInvoice(Invoice.id, null, {
-                                    idempotencyKey: `invoice-finalized-${Invoice.id}`,
-                                });
-                                
+            
+                            let Invoice = event["data"]["object"]; 
+                            try{                                                                   
+                                const updatedInvoice = await stripe.invoices.retrieve(Invoice.id);   
                                 paymentLogger.info({
-                                    message: 'Successfully Finalized invoice',
-                                    currentStatus: finalizedInvoice.status
+                                    message: 'finalize invoice', 
+                                    status: updatedInvoice.status
                                 });
-                            }   
-                        }
-                        catch(err){
-                            const subscription = await stripe.subscriptions.retrieve(Invoice.subscription);
-                            if(subscription.status != 'canceled'){
-                                // await cancelSubscription(Invoice.subscription);
-                                await UserModel.update({
-                                    isPaid: false,
-                                    subscriptionStatus: 'invoice_creation_error'
-                                }, {
-                                    where:{
-                                        email: Invoice.customer_email
-                                    }
-                                });
-                                paymentLogger.error({ message: 'Error finalizing draft invoices', error: err.message});
+
+                                if (updatedInvoice.status != 'paid' && updatedInvoice.status != 'open') {
+                                    const finalizedInvoice = await stripe.invoices.finalizeInvoice(Invoice.id, null, {
+                                        idempotencyKey: `invoice-finalized-${Invoice.id}`,
+                                    });
+                                    
+                                    paymentLogger.info({
+                                        message: 'Successfully Finalized invoice',
+                                        currentStatus: finalizedInvoice.status
+                                    });
+                                }   
                             }
-                        }      
+                            catch(err){
+                                const subscription = await stripe.subscriptions.retrieve(Invoice.subscription);
+                                if(subscription.status != 'canceled'){
+                                    // await cancelSubscription(Invoice.subscription);
+                                    await UserModel.update({
+                                        isPaid: false,
+                                        subscriptionStatus: 'invoice_creation_error'
+                                    }, {
+                                        where:{
+                                            email: Invoice.customer_email
+                                        }
+                                    });
+                                    paymentLogger.error({ message: 'Error finalizing draft invoices', error: err.message});
+                                }
+                            }      
+                        }
                         break;
 
                     case 'invoice.finalized':
+                        if (session?.mode === 'subscription') {
                             const invoice = event["data"]["object"];
                             try{                            
                                 paymentLogger.info({ 
@@ -165,215 +175,240 @@ class App {
                                 message: 'Invoice has been finalized',
                                 event_type: event.type,
                                 customer_email: invoice.customer_email
-                            });             
+                            });
+                        }             
                         break;
 
                     case 'invoice.voided':
-                        const invoiceData = event["data"]["object"];
-                        paymentLogger.info({ 
-                            message: 'Invoice has been voided',
-                            event_type: event.type,
-                            customer_email: invoiceData.customer_email,
-                            subscription: invoiceData.subscription,
-                            invoice: invoiceData
-                        });
-
-                        const subscription = await stripe.subscriptions.retrieve(invoiceData.subscription);
-                        if(subscription.status != 'canceled'){
-                           // await cancelSubscription(invoiceData.subscription);
-                            await UserModel.update({
-                                isPaid: false,
-                                subscriptionStatus: 'invoice_voided'
-                                }, {
-                                    where:{
-                                        email: invoiceData.customer_email
-                                }
-                            });
-                        }                   
-                        break;
-
-                    case 'invoice.payment_succeeded':      
-                        await handlePaymentSuccess(event["data"]["object"]);
-                        break;
-
-                    case 'invoice.payment_failed':                      
-                        let data = event["data"]["object"];
-                        paymentLogger.info({ message: 'payment failed', customer_email: data.customer_email, event_type: event.type});   
-                        try{
-                            await UserModel.update({
-                                subscriptionStatus: 'payment_failed',
-                                isPaid: false
-                                }, {
-                                    where:{
-                                        email: data.customer_email
-                                }
+                        if (session?.mode === 'subscription') {
+                            const invoiceData = event["data"]["object"];
+                            paymentLogger.info({ 
+                                message: 'Invoice has been voided',
+                                event_type: event.type,
+                                customer_email: invoiceData.customer_email,
+                                subscription: invoiceData.subscription,
+                                invoice: invoiceData
                             });
 
-                            try{
-                                let invoiceId = data?.id;
-                                if(invoiceId && data?.auto_advance == false){
-                                    await stripe.invoices.update(invoiceId, {
-                                        auto_advance: true
-                                    });
-                                }
-                            }
-                            catch(err){
-                                global.appLogger.error(err.message);
-                            }
-
-                            const user = await UserModel.findOne({
-                                where:{
-                                    email: data.customer_email
-                                },
-                                attributes:['id', 'payment_frequency']
-                            });
-
-
-                            await PhotoModel.update({
-                                isFreezed: true
-                            }, {
-                                where:{
-                                    user_id: user.dataValues.id,
-                                    isQueued: true,
-                                    weekDay: {
-                                        [Op.ne]: '1'
+                            const subscription = await stripe.subscriptions.retrieve(invoiceData.subscription);
+                            if(subscription.status != 'canceled'){
+                            // await cancelSubscription(invoiceData.subscription);
+                                await UserModel.update({
+                                    isPaid: false,
+                                    subscriptionStatus: 'invoice_voided'
+                                    }, {
+                                        where:{
+                                            email: invoiceData.customer_email
                                     }
-                                }
-                            });
+                                });
+                            }       
+                        }            
+                        break;
 
-                         
-                            if(user && user.dataValues.payment_frequency == 'first_time:false'){
-                                const galleryPhotos = await GalleryPhotoModel.findAll({
-                                    where:{
-                                        user_id: user.dataValues.id
-                                    },
-                                    order:[['createdAt', 'ASC']],
-                                    offset:5,
-                                    attributes:['id']
+                    case 'invoice.payment_succeeded': 
+                        if (session?.mode === 'subscription') {     
+                            await handlePaymentSuccess(event["data"]["object"]);
+                        }
+                        break;
+
+                    case 'invoice.payment_failed':    
+                        if (session?.mode === 'subscription') {                       
+                            let data = event["data"]["object"];
+                            paymentLogger.info({ message: 'payment failed', customer_email: data.customer_email, event_type: event.type});   
+                            try{
+                                await UserModel.update({
+                                    subscriptionStatus: 'payment_failed',
+                                    isPaid: false
+                                    }, {
+                                        where:{
+                                            email: data.customer_email
+                                    }
                                 });
 
-                                paymentLogger.info({
-                                    message:'Fetch User Gallery Photos',
-                                    galleryPhotosLength: galleryPhotos.length
-                                })
-
-                                if(galleryPhotos.length > 0){
-                                    for(let i=0; i<galleryPhotos.length; i++){
-                                        paymentLogger.info({
-                                            message:'Get Grayed Out Gallery Photos',
-                                            Photo: i,
-                                            galleryPhotoId: galleryPhotos[i]['dataValues']['id']
-                                        })
-        
-                                        await GalleryPhotoModel.update({
-                                            photo_display_status: 'true'
-                                        }, {
-                                            where:{
-                                                id: galleryPhotos[i]['dataValues']['id']
-                                            }
-                                        })
+                                try{
+                                    let invoiceId = data?.id;
+                                    if(invoiceId && data?.auto_advance == false){
+                                        await stripe.invoices.update(invoiceId, {
+                                            auto_advance: true
+                                        });
                                     }
+                                }
+                                catch(err){
+                                    global.appLogger.error(err.message);
+                                }
 
-                                    const now = new Date();
-                                    let userId = user.dataValues.id;
-                                    if (photoQueue.has(userId)) {
-                                        const job = photoQueue.get(userId);
-                                        job.cancel();
-                                      }
-                                    const ninetyDaysLater = new Date(now.setDate(now.getDate() + 90))
-                                    //new Date(Date.now() + 1 * 60 * 1000); 
-                                  
-                                    //const twominutesLater = new Date(Date.now() + 2 * 60 * 1000); 
-                                    const job = schedule.scheduleJob(ninetyDaysLater, async () => {
-                                        try {
-                                            const user = await UserModel.findOne({
+                                const user = await UserModel.findOne({
+                                    where:{
+                                        email: data.customer_email
+                                    },
+                                    attributes:['id', 'payment_frequency']
+                                });
+
+
+                                await PhotoModel.update({
+                                    isFreezed: true
+                                }, {
+                                    where:{
+                                        user_id: user.dataValues.id,
+                                        isQueued: true,
+                                        weekDay: {
+                                            [Op.ne]: '1'
+                                        }
+                                    }
+                                });
+
+                            
+                                if(user && user.dataValues.payment_frequency == 'first_time:false'){
+                                    const galleryPhotos = await GalleryPhotoModel.findAll({
+                                        where:{
+                                            user_id: user.dataValues.id
+                                        },
+                                        order:[['createdAt', 'ASC']],
+                                        offset:5,
+                                        attributes:['id']
+                                    });
+
+                                    paymentLogger.info({
+                                        message:'Fetch User Gallery Photos',
+                                        galleryPhotosLength: galleryPhotos.length
+                                    })
+
+                                    if(galleryPhotos.length > 0){
+                                        for(let i=0; i<galleryPhotos.length; i++){
+                                            paymentLogger.info({
+                                                message:'Get Grayed Out Gallery Photos',
+                                                Photo: i,
+                                                galleryPhotoId: galleryPhotos[i]['dataValues']['id']
+                                            })
+            
+                                            await GalleryPhotoModel.update({
+                                                photo_display_status: 'true'
+                                            }, {
                                                 where:{
-                                                    email: data.customer_email
-                                                },
-                                                attributes:['isPaid', 'id']
-                                            });
-                                            if(user.dataValues.isPaid == false){
-                                                const falsyGalleryPhotos = await GalleryPhotoModel.count({
+                                                    id: galleryPhotos[i]['dataValues']['id']
+                                                }
+                                            })
+                                        }
+
+                                        const now = new Date();
+                                        let userId = user.dataValues.id;
+                                        if (photoQueue.has(userId)) {
+                                            const job = photoQueue.get(userId);
+                                            job.cancel();
+                                        }
+                                        const ninetyDaysLater = new Date(now.setDate(now.getDate() + 90))
+                                        //new Date(Date.now() + 1 * 60 * 1000); 
+                                    
+                                        //const twominutesLater = new Date(Date.now() + 2 * 60 * 1000); 
+                                        const job = schedule.scheduleJob(ninetyDaysLater, async () => {
+                                            try {
+                                                const user = await UserModel.findOne({
                                                     where:{
-                                                        user_id: user.dataValues.id,
-                                                        photo_display_status: 'false'
-                                                    }
+                                                        email: data.customer_email
+                                                    },
+                                                    attributes:['isPaid', 'id']
                                                 });
-                            
-                                                const truthyGalleryPhotos = await GalleryPhotoModel.count({
-                                                    where:{
-                                                        user_id: user.dataValues.id,
-                                                        photo_display_status: 'true'
-                                                    }
-                                                });
-                            
-                                                if(falsyGalleryPhotos < 5 && truthyGalleryPhotos){
-                                                    let updatedPhotos = 5 - falsyGalleryPhotos;   // 2
-                                                    const photos = await GalleryPhotoModel.findAll({
+                                                if(user.dataValues.isPaid == false){
+                                                    const falsyGalleryPhotos = await GalleryPhotoModel.count({
+                                                        where:{
+                                                            user_id: user.dataValues.id,
+                                                            photo_display_status: 'false'
+                                                        }
+                                                    });
+                                
+                                                    const truthyGalleryPhotos = await GalleryPhotoModel.count({
                                                         where:{
                                                             user_id: user.dataValues.id,
                                                             photo_display_status: 'true'
-                                                        },
-                                                        attributes:['id'],
-                                                        order:[['createdAt', 'ASC']],
-                                                        limit: updatedPhotos
+                                                        }
                                                     });
-                            
-                                                    for(let i=0; i< photos.length; i++){
-                                                        await GalleryPhotoModel.update({
-                                                            photo_display_status: 'false'
-                                                            }, {
-                                                                where:{
-                                                                   id: photos[i]['dataValues']['id']
-                                                                }
-                            
-                                                        })
+                                
+                                                    if(falsyGalleryPhotos < 5 && truthyGalleryPhotos){
+                                                        let updatedPhotos = 5 - falsyGalleryPhotos;   // 2
+                                                        const photos = await GalleryPhotoModel.findAll({
+                                                            where:{
+                                                                user_id: user.dataValues.id,
+                                                                photo_display_status: 'true'
+                                                            },
+                                                            attributes:['id'],
+                                                            order:[['createdAt', 'ASC']],
+                                                            limit: updatedPhotos
+                                                        });
+                                
+                                                        for(let i=0; i< photos.length; i++){
+                                                            await GalleryPhotoModel.update({
+                                                                photo_display_status: 'false'
+                                                                }, {
+                                                                    where:{
+                                                                    id: photos[i]['dataValues']['id']
+                                                                    }
+                                
+                                                            })
+                                                        }
                                                     }
-                                                }
 
-                                                global.appLogger.info('Successfully Update Scheduled');
-                                                await GalleryPhotoModel.update({
-                                                    photo_display_status: 'expired'
-                                                }, {
-                                                    where:{
-                                                        user_id: user.dataValues.id,
-                                                        photo_display_status: 'true'
-                                                    }
+                                                    global.appLogger.info('Successfully Update Scheduled');
+                                                    await GalleryPhotoModel.update({
+                                                        photo_display_status: 'expired'
+                                                    }, {
+                                                        where:{
+                                                            user_id: user.dataValues.id,
+                                                            photo_display_status: 'true'
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                            catch(err){
+                                                paymentLogger.error({
+                                                    message: 'Error in scheduling',
+                                                    error: err.message
                                                 })
                                             }
-                                        }
-                                        catch(err){
-                                            paymentLogger.error({
-                                                message: 'Error in scheduling',
-                                                error: err.message
-                                            })
-                                        }
-                                        finally{
-                                            photoQueue.delete(userId);
-                                          }
-                                    })
+                                            finally{
+                                                photoQueue.delete(userId);
+                                            }
+                                        })
 
-                                    photoQueue.set(userId, job);
-                                }                      
+                                        photoQueue.set(userId, job);
+                                    }                      
+                                }
                             }
-                        }
-                        catch(err){
-                            paymentLogger.error({
-                                message:'Error Inside invoice.payment_failed event',
-                                error: err.message
-                            })
+                            catch(err){
+                                paymentLogger.error({
+                                    message:'Error Inside invoice.payment_failed event',
+                                    error: err.message
+                                })
+                            }
                         }
                         break;
 
                     case 'customer.subscription.deleted':
-                        paymentLogger.info({ message: 'subscription deleted', event: event.data, event_type: event.type});
-                        await handleSubscriptionExpired(event);
+                         if (session?.mode === 'subscription') {     
+                            paymentLogger.info({ message: 'subscription deleted', event: event.data, event_type: event.type});
+                            await handleSubscriptionExpired(event);
+                         }
                         break;
 
                     case 'customer.subscription.updated':
-                        paymentLogger.info({ message: 'subscription updated', event: event.data, event_type: event.type});
-                        await handleSubscriptionExpired(event);
+                        if (session?.mode === 'subscription') {     
+                            paymentLogger.info({ message: 'subscription updated', event: event.data, event_type: event.type});
+                            await handleSubscriptionExpired(event);
+                        }
                         break;
+
+
+                    case 'checkout.session.completed': {
+                        if (session?.mode === 'payment') {
+                            await handleOneTimePaymentSuccess(session);
+                        }
+                        break;
+                    }
+
+
+                     case 'payment_intent.payment_failed': {
+                            await handleOneTimePaymentFailed(session);
+                    }
+                    break;
 
                     default:
                         paymentLogger.error({ message: 'Unhandled event type', event_type: event.type});
@@ -394,6 +429,51 @@ class App {
             }
         });
 
+
+        const handleOneTimePaymentSuccess = async (session) => {
+            try {
+                    
+                    const stripe = new Stripe(Env.stripeSecretKey);
+
+                    const paymentIntent = await stripe.paymentIntents.retrieve(
+                        session.payment_intent
+                    );
+
+                    if(paymentIntent) {
+                        const { email, photoId } = paymentIntent.metadata;
+
+                        let userData = await UserModel.findOne({
+                            where:{
+                                email
+                            },
+                            attributes:['id']
+                        });
+                    
+                        await ReportPaymentsModel.create({
+                            user_id: userData['id'],
+                            photo_id: photoId,
+                            stripe_payment_intent_id: paymentIntent.id,
+                            isPaid: true,
+                            subscriptionStatus: 'active'
+                        });
+
+                        paymentLogger.info({
+                            message: `One-time payment success for User ${userData['id']}`,
+                            email,
+                            photoId,
+                            paymentIntent: paymentIntent.id
+                        });
+                    }
+            } 
+            catch (err) {
+                paymentLogger.error({
+                    message: `Error One-time payment success`,
+                    error: err.message
+                });
+            }
+        };
+
+  
         const handlePaymentSuccess = async (data) => {
             try{
                 const email = data.customer_email;      
@@ -401,7 +481,7 @@ class App {
                 const priceId = data.lines?.data[0]?.price?.id;   
                 const stripe = new Stripe(Env.stripeSecretKey, { apiVersion: '2020-08-27' });
                 const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-             
+
                 let membershipPlan;
                 let paidInterestCategory;
                 switch (priceId) {
@@ -573,7 +653,38 @@ class App {
             }
         };
 
-     
+
+
+        const handleOneTimePaymentFailed = async (session) => {
+            try {
+                
+                let paymentIntentTd = session.id;
+                const stripe = new Stripe(Env.stripeSecretKey);
+
+                const paymentIntent = await stripe.paymentIntents.retrieve( paymentIntentTd );
+
+                if(paymentIntent) {
+                    const { email, photoId, payment_mode } = paymentIntent.metadata || {};
+                    if( payment_mode == 'one_time' ) { 
+                        const failureReason = paymentIntent.last_payment_error?.message || 'Unknown reason';
+                        paymentLogger.error({
+                            message: `One-time payment failed for User ${email}`,
+                            email,
+                            photoId,
+                            paymentIntent: paymentIntent.id,
+                            reason: failureReason
+                        });
+                    }
+                }
+            }
+            catch(err){
+                  paymentLogger.error({
+                    message: `Error in One-time payment for User`,
+                    error: err.message
+                });
+
+            }
+        }
 
 
         const updateQueuedPhotos = async(user) => {

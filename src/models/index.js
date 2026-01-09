@@ -29,3 +29,4 @@ export {default as AdminNotificationTemplateModel } from './notification_templat
 export {default as ActivityCalloutModel } from './activity_callout.model';
 export {default as UserNotificationStatusModel } from './user_notification_status.model';
 export {default as TempUserActionsModel } from './temp_user_actions.model';
+export {default as ReportPaymentsModel} from './report_payments.model';

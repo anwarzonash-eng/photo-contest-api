@@ -9,17 +9,8 @@ export class paymentService extends baseService {
     async createCheckoutSession(req) {
         try
         {
-           /* const user = await this._userModel.findOne({
-                where:{
-                    email: req.body.email
-                },
-                attributes:['subscriptionId', 'isPaid']
-            })
-
-            */
-            
-            const stripe = Stripe(Env.stripeSecretKey);
-            //if(user.dataValues.isPaid == false){
+          
+                const stripe = Stripe(Env.stripeSecretKey);
                 let { email, productId, successUrl, cancelUrl } = req.body;
                 const products = {     
                         [Env.monthly_productId]: Env.monthly_priceId,
@@ -57,8 +48,44 @@ export class paymentService extends baseService {
                         email: email
                     }
                 });
-                return { id: session.id };     
-            //}
+                return { id: session.id };      
+        }
+        catch(err){
+            return { status: 'Error', message: err.message };
+        }
+
+       
+    }
+
+
+    async createReportCheckoutSession(req){
+        try{
+               const stripe = Stripe(Env.stripeSecretKey);
+                let { photoId, email, successUrl, cancelUrl } = req.body;
+                const customerEmail = email !== '' ? { customer_email: email } : {};
+                
+                const session = await stripe.checkout.sessions.create({
+                    payment_method_types: ['card', 'link'],
+                    ...customerEmail,
+                    line_items: [
+                        {
+                            price: Env.report_priceId, 
+                            quantity: 1,
+                        },
+                    ],
+                    mode: 'payment',
+                    payment_intent_data: {
+                        metadata: {
+                            email,
+                            photoId: "00000000-0000-0000-0000-000000000099",
+                            payment_mode: 'one_time'
+                        },
+                    },
+                    success_url: `${Env.Base_Url}${successUrl}`,
+                    cancel_url: `${Env.Base_Url}${cancelUrl}`,
+                });
+
+                return { id: session.id }; 
         }
         catch(err){
             return { status: 'Error', message: err.message };
