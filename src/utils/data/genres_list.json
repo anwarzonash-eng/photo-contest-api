@@ -2,32 +2,32 @@
   "Abstract": [
     {
       "attr_name": "Composition & Shape",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "How effectively forms and spatial relationships are arranged to create a coherent or intentionally disruptive abstract design."
     },
     {
       "attr_name": "Color Harmony / Contrast",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "How color choices enhance impact, mood, or tension within the abstraction."
     },
     {
       "attr_name": "Texture & Detail",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "The clarity and depth of surface qualities contributing to the abstract effect."
     },
     {
       "attr_name": "Creativity / Originality",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Concept%2C%20Idea%20Strength.png",
       "definition": "The uniqueness of the visual idea, technique, or conceptual approach."
     },
     {
       "attr_name": "Visual Balance",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Lighting%20on%20Face%2C%20Skin%20Tone.png",
       "definition": "How weight and spacing of elements create equilibrium or purposeful imbalance."
     },
     {
       "attr_name": "Emotional or Conceptual Impact",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "The strength of the feeling or idea conveyed through non-literal imagery."
     }
   ],
@@ -35,32 +35,32 @@
   "Landscape": [
     {
       "attr_name": "Composition (fore/mid/background layering)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "How effectively depth is created through layered elements and spatial arrangement."
     },
     {
       "attr_name": "Lighting / Golden Hour Use",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Quality and direction of natural light to enhance texture and mood."
     },
     {
       "attr_name": "Depth & Scale",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Depth%20%26%20Scale.png",
       "definition": "How clearly the image conveys vastness and dimensional relationships."
     },
     {
       "attr_name": "Color & Tonal Range",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Accuracy and richness of natural colors and tonal contrast."
     },
     {
       "attr_name": "Focus / Sharpness Across Frame",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "Appropriateness of clarity and sharpness throughout the scene."
     },
     {
       "attr_name": "Atmosphere / Mood",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood.png",
       "definition": "The emotional or environmental feeling the landscape evokes."
     }
   ],
@@ -68,32 +68,32 @@
   "Aerial": [
     {
       "attr_name": "Perspective / Altitude Use",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Altitude%20Use.png",
       "definition": "How altitude reveals patterns or context not visible from the ground."
     },
     {
       "attr_name": "Composition (geometry/symmetry/leading lines)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Effective use of aerial geometry, leading lines, and patterns."
     },
     {
       "attr_name": "Lighting & Shadow Play",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "How directional light and shadows enhance shapes and contours."
     },
     {
       "attr_name": "Color & Contrast",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Clarity of tones and colors from above."
     },
     {
       "attr_name": "Subject Clarity / Scale",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Scale.png",
       "definition": "How well the main subject reads and communicates scale."
     },
     {
       "attr_name": "Story or Context from Above",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "The narrative or environmental insight provided by the aerial view."
     }
   ],
@@ -101,32 +101,32 @@
   "Website": [
     {
       "attr_name": "Clarity / Clean Background",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Scale.png",
       "definition": "How unobstructed and distraction-free the background is."
     },
     {
       "attr_name": "Lighting Consistency",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Even and controlled lighting that maintains product accuracy."
     },
     {
       "attr_name": "Composition for Layout (negative space,crop)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Strategic negative space and structure for web usage and cropping."
     },
     {
       "attr_name": "Color Accuracy / White Balance",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Faithfulness to real product colors and tones."
     },
     {
       "attr_name": "Technical Sharpness",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "Crispness and clarity suitable for high-resolution display."
     },
     {
       "attr_name": "Brand Consistency / Visual Cohesion",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Visual%20Cohesion.png",
       "definition": "How well the image aligns with brand identity and mood."
     }
   ],
@@ -134,32 +134,32 @@
   "Astro": [
     {
       "attr_name": "Exposure Control (noise, star detail)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Exposure%20Control%20%28noise%2C%20star%20detail%29.png",
       "definition": "Balance between brightness, noise control, and preserving star detail."
     },
     {
       "attr_name": "Focus Precision (stars sharp)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "Accuracy of focus on stars or celestial subjects without trailing."
     },
     {
       "attr_name": "Composition (foreground integration)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Effective use of land elements to add depth and storytelling."
     },
     {
       "attr_name": "Color Balance (natural vs stylized sky)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Faithfulness or creative balance in night sky colors."
     },
     {
       "attr_name": "Light Pollution Management",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Reduction of unwanted glow or gradients from artificial light."
     },
     {
       "attr_name": "Overall Mood / Awe Factor",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "The sense of wonder and atmosphere conveyed."
     }
   ],
@@ -167,32 +167,32 @@
   "Nature": [
     {
       "attr_name": "Composition / Framing",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Placement that highlights natural beauty and avoids clutter."
     },
     {
       "attr_name": "Lighting (natural,soft,or directional)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Use of soft or directional natural light to reveal detail."
     },
     {
       "attr_name": "Subject Isolation / Focus",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "How well the subject stands out from its environment."
     },
     {
       "attr_name": "Color & Texture",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Richness and visibility of natural hues and textures."
     },
     {
       "attr_name": "Story or Behavior in Scene",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "The narrative or ecological moment captured."
     },
     {
       "attr_name": "Mood / Atmosphere",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood.png",
       "definition": "The emotional feel of the natural setting."
     }
   ],
@@ -200,32 +200,32 @@
   "Documentary": [
     {
       "attr_name": "Storytelling / Context",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "Clarity and depth of narrative within the frame."
     },
     {
       "attr_name": "Emotion / Authenticity",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Realness and honesty of the emotional content."
     },
     {
       "attr_name": "Composition (moment-driven)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Arrangement that strengthens the captured moment."
     },
     {
       "attr_name": "Lighting (available, natural use)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Skillful use of real-world lighting conditions."
     },
     {
       "attr_name": "Subject Relevance",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Subject%20Context%20%28scale%2C%20surroundings%29%20MOUNTAINS.png",
       "definition": "Importance of the chosen subject to the story."
     },
     {
       "attr_name": "Timing / Decisive Moment",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Power or meaning of the exact moment captured."
     }
   ],
@@ -233,32 +233,32 @@
   "Portrait": [
     {
       "attr_name": "Expression / Emotion",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Quality and authenticity of the subject’s expression or mood."
     },
     {
       "attr_name": "Lighting on Face / Skin Tone",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Control of light to shape features and maintain accurate skin tones."
     },
     {
       "attr_name": "Composition & Framing",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Placement of the subject for impact and balance."
     },
     {
       "attr_name": "Focus on Eyes",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Focus%20on%20Eyes.png",
       "definition": "Precision of sharpness where it matters most."
     },
     {
       "attr_name": "Background Control / Separation",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Lighting%20on%20Face%2C%20Skin%20Tone.png",
       "definition": "Cleanliness and contrast between subject and background."
     },
     {
       "attr_name": "Authenticity / Mood",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood.png",
       "definition": "Overall feel and sincerity of the portrait."
     }
   ],
@@ -266,32 +266,32 @@
   "Drone": [
     {
       "attr_name": "Composition from Above (lines,geometry)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Use of aerial lines, geometry, and structure."
     },
     {
       "attr_name": "Altitude / Perspective Choice",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Perspective%20Choice.png",
       "definition": "How height enhances the subject or reveals patterns."
     },
     {
       "attr_name": "Lighting / Shadow Direction",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "How light and shadow sculpt the scene from overhead."
     },
     {
       "attr_name": "Subject Context (scale)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Subject%20Context%20%28scale%2C%20surroundings%29%20MOUNTAINS.png",
       "definition": "Clarity of how the subject sits in its environment."
     },
     {
       "attr_name": "Technical Sharpness / Clarity",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "Crispness and detail from the airborne platform."
     },
     {
       "attr_name": "Originality / Creativity of Angle",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Concept%2C%20Idea%20Strength.png",
       "definition": "Freshness of the viewpoint."
     }
   ],
@@ -299,32 +299,32 @@
   "Product": [
     {
       "attr_name": "Lighting Control / Reflection Handling",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Managing reflections and highlights for clean product results."
     },
     {
       "attr_name": "Color Accuracy",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "True-to-life rendering of product colors."
     },
     {
       "attr_name": "Composition / Centering",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Balanced placement for commercial clarity."
     },
     {
       "attr_name": "Background Cleanliness",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Lighting%20on%20Face%2C%20Skin%20Tone.png",
       "definition": "A spotless and distraction-free environment."
     },
     {
       "attr_name": "Sharpness / Texture Clarity",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Scale.png",
       "definition": "Clear visibility of fine product details."
     },
     {
       "attr_name": "Post-Processing Consistency",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Post-Processing%20Consistency%20EDITING.png",
       "definition": "Uniform editing that maintains brand trust."
     }
   ],
@@ -332,32 +332,32 @@
   "Art": [
     {
       "attr_name": "Concept / Idea Strength",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Concept%2C%20Idea%20Strength.png",
       "definition": "Depth and clarity of the creative concept."
     },
     {
       "attr_name": "Composition / Visual Flow",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "How effectively the eye moves through the image."
     },
     {
       "attr_name": "Color Theory / Palette",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "How color choices convey meaning or mood."
     },
     {
       "attr_name": "Emotion / Narrative",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Expressive or symbolic storytelling."
     },
     {
       "attr_name": "Technical Execution",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Craftsmanship in capture and processing."
     },
     {
       "attr_name": "Originality / Creative Risk",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Concept%2C%20Idea%20Strength.png",
       "definition": "Boldness and uniqueness of the artistic approach."
     }
   ],
@@ -365,32 +365,32 @@
   "Events": [
     {
       "attr_name": "Timing / Moment",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Capture of key emotional or action moments."
     },
     {
       "attr_name": "Emotion / Expression",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Authentic reactions and feelings."
     },
     {
       "attr_name": "Composition (crowd or action framing)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Arranging subjects while capturing unpredictable scenes."
     },
     {
       "attr_name": "Lighting (ambient, stage or flash use)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Managing mixed challenging lighting environments."
     },
     {
       "attr_name": "Storytelling / Sequence Context",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "How the image fits into the event narrative."
     },
     {
       "attr_name": "Technical Clarity / Exposure",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Exposure%20Control%20%28noise%2C%20star%20detail%29.png",
       "definition": "Sharpness and exposure control."
     }
   ],
@@ -398,32 +398,32 @@
   "Street": [
     {
       "attr_name": "Timing / Decisive Moment",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Capturing fleeting, meaningful interactions."
     },
     {
       "attr_name": "Storytelling / Human Element",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "Depth of narrative from everyday life."
     },
     {
       "attr_name": "Composition (geometry/layering)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Spatial relationships that add interest."
     },
     {
       "attr_name": "Light / Shadow Interaction",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Creative use of natural urban light."
     },
     {
       "attr_name": "Authenticity / Candidness",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood.png",
       "definition": "Honest, unposed human moments."
     },
     {
       "attr_name": "Emotion / Mood",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Overall feel of the street environment."
     }
   ],
@@ -431,32 +431,32 @@
   "Food": [
     {
       "attr_name": "Lighting (soft/directional)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Light that enhances texture and freshness."
     },
     {
       "attr_name": "Composition (plating/angle choice)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Arrangement and angle that present the dish best."
     },
     {
       "attr_name": "Color Accuracy / Appeal",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Realistic, vibrant colors that look edible."
     },
     {
       "attr_name": "Texture / Sharpness",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/focus%20%26%20detail.png",
       "definition": "Visibility of surface details."
     },
     {
       "attr_name": "Background & Props Harmony",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Lighting%20on%20Face%2C%20Skin%20Tone.png",
       "definition": "Styling that complements the subject."
     },
     {
       "attr_name": "Appetite Appeal / Mood",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood%20PLATE%20OF%20FOOD.png",
       "definition": "How tasty and inviting the food appears."
     }
   ],
@@ -464,32 +464,32 @@
   "Travel": [
     {
       "attr_name": "Composition / Framing",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Capturing place with strong visual structure."
     },
     {
       "attr_name": "Lighting (golden hour/atmosphere)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Using natural light to enhance mood."
     },
     {
       "attr_name": "Storytelling / Sense of Place",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "Conveying culture or environment clearly."
     },
     {
       "attr_name": "Color & Tone",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Candidness.png",
       "definition": "Vibrancy and tonal richness of the scene."
     },
     {
       "attr_name": "Subject Interest / Local Authenticity",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Subject%20Context%20%28scale%2C%20surroundings%29%20MOUNTAINS.png",
       "definition": "Meaningful or genuine subjects."
     },
     {
       "attr_name": "Mood / Emotion",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Mood.png",
       "definition": "Feeling or atmosphere of the destination."
     }
   ],
@@ -497,32 +497,32 @@
   "Sport": [
     {
       "attr_name": "Timing / Peak Action",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Capturing the height of motion or impact."
     },
     {
       "attr_name": "Focus / Sharpness on Subject",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Focus%20on%20Eyes.png",
       "definition": "Precision despite speed."
     },
     {
       "attr_name": "Composition (motion/direction)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Framing that shows movement."
     },
     {
       "attr_name": "Emotion / Energy",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "Feeling of intensity."
     },
     {
       "attr_name": "Lighting (arena/outdoor control)",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Handling difficult mixed lighting."
     },
     {
       "attr_name": "Story / Context of the Moment",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story.png",
       "definition": "Narrative surrounding the action."
     }
   ],
@@ -530,32 +530,32 @@
   "Other": [
     {
       "attr_name": "Composition",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/composotion.png",
       "definition": "Balance and structure within the frame."
     },
     {
       "attr_name": "Lighting",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/lightning.png",
       "definition": "Quality and direction of the light used."
     },
     {
       "attr_name": "Subject Interest",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Subject%20Context%20%28scale%2C%20surroundings%29%20MOUNTAINS.png",
       "definition": "How compelling or meaningful the subject is."
     },
     {
       "attr_name": "Technical Execution",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Technical%20Execution.png",
       "definition": "Sharpness, exposure, and camera handling."
     },
     {
       "attr_name": "Creativity",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/Concept%2C%20Idea%20Strength.png",
       "definition": "Originality of idea or approach."
     },
     {
       "attr_name": "Emotional Impact",
-      "icon": "https://example.com/placeholder.jpg",
+      "icon": "https://bph051023a.s3.amazonaws.com/icons/story%20%26%20emoji.png",
       "definition": "The feeling the image evokes."
     }
   ]
