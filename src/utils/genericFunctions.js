@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 const CryptoJS = require("crypto-js");
 import { sequelize } from './database';
 import { HuntScoreModel, UserModel, GalleryPhotoModel, PersonalWebsiteModel, PersonalPhotoModel,
-        AdminNotificationTemplateModel, UserNotificationStatusModel
+        AdminNotificationTemplateModel, UserNotificationStatusModel, ChatgptPromptsModel
     } 
 from '../models';
 import { transactionCommit, transactionRollback } from './transaction';
@@ -822,3 +822,20 @@ export async function getActiveAdminNotifications(userId, offset = 0, limit = 10
     }
 }
 
+
+
+    export async function getChatgptPromptByType(promptType) {
+        try {
+            const prompt = await ChatgptPromptsModel.findOne({    
+                where: {    
+                    prompt_type: promptType,
+                    isDeleted: false
+                }
+            });
+            return prompt;
+        } 
+        catch (error) {
+            throw new Error(error.message);
+        }   
+
+    }

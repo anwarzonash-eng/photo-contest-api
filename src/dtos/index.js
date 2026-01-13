@@ -19,4 +19,4 @@ export { PersonalPageFollowUserDto, getSuggestedFollowersDto } from './personal_
 export { photoVaultLogsDto, uploadPhotosToS3Dto, createFolderDto, getPhotosListDto, updateFolderDto, 
     uploadPhotosToVaultDto, downloadBackBlazePhotosDto, deleteVaultPhotosDto
 } from "./personal_page_vault.dto.js";
-export { chatgptDto } from "./chatgpt.dto.js";
+export { chatgptDto, addChatgptPromptDto } from "./chatgpt.dto.js";
