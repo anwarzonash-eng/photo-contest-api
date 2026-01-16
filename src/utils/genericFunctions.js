@@ -824,18 +824,3 @@ export async function getActiveAdminNotifications(userId, offset = 0, limit = 10
 
 
 
-    export async function getChatgptPromptByType(promptType) {
-        try {
-            const prompt = await ChatgptPromptsModel.findOne({    
-                where: {    
-                    prompt_type: promptType,
-                    isDeleted: false
-                }
-            });
-            return prompt;
-        } 
-        catch (error) {
-            throw new Error(error.message);
-        }   
-
-    }
