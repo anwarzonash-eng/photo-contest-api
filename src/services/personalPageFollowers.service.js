@@ -1,6 +1,4 @@
-import { response } from 'express';
 import baseService from './base.service';
-import { sequelize } from '../utils/database';
 import  { addMemberToAudience } from "../utils/mailchimp/list";
 const schedule = require('node-schedule');
 import {Env} from '../config';
@@ -17,6 +15,7 @@ export class personalPageFollowersService extends baseService {
             let userId = req.userData._id;
             const { siteOwnerId, email, followersId, isFollow } = req.body;
 
+            
             if(isFollow === false){
                 await this._personalPageFollowRelationModel.update(
                     { is_follow: false },   
@@ -85,6 +84,7 @@ export class personalPageFollowersService extends baseService {
                 }
             });
 
+
             if(followersId && followersId.length > 0){
                 for (const id of followersId) {
                     await this._personalPageFollowRelationModel.findOrCreate({
@@ -107,61 +107,118 @@ export class personalPageFollowersService extends baseService {
             let suggestedCreators;
             if(followersId && followersId.length == 0){ 
                 suggestedCreators = await this.getSuggestedFollowersList(req);
-
-                // 5. Schedule transactional email to be send after 10 
-                schedule.scheduleJob(new Date(Date.now() + 10 * 60 * 1000), async () => {
-                    const extraFollows = await this._personalPageFollowRelationModel.count({
-                        where: { 
-                            follow_event_id: event.id, 
-                            follower_id: { 
-                                [Op.ne]: siteOwnerId
-                            },
-                            is_follow: true
-                        }
-                    });
-
-                    let emailType = 'Email 1 - Followed original creator';
-
-                    if (extraFollows > 0) {
-                        emailType = 'Email 2 - Followed extra creators';
-                        let template = {
-                            from_email:'support@example.com', 
-                            from_name: "Photo Contest", 
-                            to_email: email, 
-                            subject:'Email 2 - Followed extra creators', 
-                            body:`<p>Hi! 
-                                <br><br> Email 2 - Followed extra creators
-                                <br><br>The Photo Contest
-                            </p>`
-                        }
-                        await sendEmail(template);
-                    } 
-                    else {
-                        let template = {
-                            from_email:'support@example.com', 
-                            from_name: "Photo Contest", 
-                            to_email: email, 
-                            subject:'Email 1 - Only followed original creator', 
-                            body:`<p>Hi! 
-                                <br><br> Email 1 - Only followed original creator
-                                <br><br>The Photo Contest
-                            </p>`
-                        }
-                        await sendEmail(template);
-                    }
-
-                    await this._personalPageFollowEventModel.update(
-                    {
-                        email_status: 'sended',
-                        email_type: emailType
-                    }, 
-                    {
-                        where:{
-                            id: event.id
-                        }
-                    });
-                });
             }
+
+
+           
+
+               schedule.scheduleJob(new Date(Date.now() + 10 * 60 * 1000), async () => {
+                try {
+                      
+                        const suggestedFollows = await this._personalPageFollowRelationModel.findAll({
+                            where: {
+                                follow_event_id: event.id,
+                                follower_id: { [Op.ne]: siteOwnerId },
+                                is_follow: true
+                            },
+                            attributes: ['follower_id']
+                        });
+
+                        const suggestedFollowerIds = suggestedFollows.map(r => r.follower_id);
+                        let emailType = 'Email 1 - Followed original creator';
+
+                        if (suggestedFollowerIds.length > 0) {
+                            emailType = 'Email 2 - Followed extra creators';
+                
+                            for (const id of suggestedFollowerIds) {
+                                let userData = await this._personalWebsiteModel.findOne({
+                                    where: { user_id: id },
+                                    attributes: ['user_name']
+                                });
+
+                                const PPW_Owner_FirstName = (userData?.user_name || '').split(' ')[0] || '';
+
+                                let template = {
+                                    from_email: "noreply@example.com",
+                                    to_email: email,
+                                    subject: `Thanks for following ${userData?.user_name}'s Photography`,
+                                    body:`<p>Hi there,
+                                    <br><br>
+                                    Thanks so much for following ${userData?.user_name}'s photography website.
+                                    <br><br>
+                                    By following, you’ll get updates when ${PPW_Owner_FirstName} shares new work and announcements, and as we roll out new features that make it easier to stay connected and engaged with their photography.
+                                    <br><br>
+                                    That’s kind of our thing.
+                                    <br><br>
+                                    So keep an eye out for more from ${PPW_Owner_FirstName} soon.
+                                    <br><br>
+                                    And if you ever have questions or need help, just hit reply.
+                                    <br><br>
+                                    :-) Ken
+                                    <br>
+                                    —
+                                    <br>
+                                    Ken Deckinger, Founder 
+                                    <br>
+                                    <a href="${Env.Base_Url}">The Photo Contest</a>
+                                    </p>`
+                                 }
+                        
+                                await sendEmail(template);
+                            }
+                        } 
+                        else {
+                            let userData = await this._personalWebsiteModel.findOne({
+                                where: { user_id: siteOwnerId },
+                                attributes: ['user_name'],
+                                raw: true
+                            });
+
+                            const PPW_Owner_FirstName = (userData?.user_name || '').split(' ')[0] || '';
+                            
+                            let template = {
+                                from_email: "noreply@example.com",
+                                to_email: email,
+                                subject: `Thanks for following ${userData?.user_name}'s Photography`,
+                                body:`<p>Hi there,
+                                    <br><br>
+                                    Thanks so much for following ${userData?.user_name}'s photography website.
+                                    <br><br>
+                                    By following, you’ll get updates when ${PPW_Owner_FirstName} shares new work and announcements, and as we roll out new features that make it easier to stay connected and engaged with their photography.
+                                    <br><br>
+                                    That’s kind of our thing.
+                                    <br><br>
+                                    So keep an eye out for more from ${PPW_Owner_FirstName} soon.
+                                    <br><br>
+                                    And if you ever have questions or need help, just hit reply.
+                                    <br><br>
+                                    :-) Ken
+                                    <br>
+                                    —
+                                    <br>
+                                    Ken Deckinger, Founder
+                                    <br>
+                                    <a href="${Env.Base_Url}">The Photo Contest</a>
+                                </p>`
+                            }
+                           
+                            await sendEmail(template);
+                        }
+
+                        await this._personalPageFollowEventModel.update(
+                            {
+                                email_status: 'sended',
+                                email_type: emailType
+                            },
+                            {
+                                where: { id: event.id }
+                            }
+                        );
+                    } catch (err) {
+                        global.appLogger.error(`[Error] sending follow confirmation email for event ${event?.id} - ${err.message}`);
+                    }
+                });
+            
 
             
             return {
