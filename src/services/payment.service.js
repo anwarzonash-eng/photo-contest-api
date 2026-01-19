@@ -61,8 +61,6 @@ export class paymentService extends baseService {
     async createReportCheckoutSession(req){
         try{
                const stripe = Stripe(Env.stripeSecretKey);
-               global.appLogger.info( `Key, ${Env.stripeSecretKey}`);
-                 global.appLogger.info( `Report Price Id, ${Env.report_priceId}`)
                 let { photoId, email, successUrl, cancelUrl } = req.body;
                 const customerEmail = email !== '' ? { customer_email: email } : {};
                 
