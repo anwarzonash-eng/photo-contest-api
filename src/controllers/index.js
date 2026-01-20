@@ -29,6 +29,7 @@ export const controllers = function name() {
         new personalPageFollowersController(),
         new personalPageVaultController(),
         new AIReportsController(),
-        new chatgptController()
+        new chatgptController(),
+        new PhotosRankingController()
     ]
 }
