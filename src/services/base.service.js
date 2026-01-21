@@ -6,7 +6,7 @@ import { UserModel, NotificationModel, PhotoModel, GalleryPhotoModel, PhotoClick
      PersonalPageFollowEventModel, PersonalPageFollowRelationModel, FoldersModel, PersonalPageVaultPhotosModel,
      PhotoVaultLogsModel, PhotoVaultBatchModel, AdminNotificationTemplateModel, ActivityCalloutModel, 
      UserNotificationStatusModel, TempUserActionsModel, AiReportsModel, ReportPaymentsModel, ChatgptPromptsModel,
-     BenchmarkPhotosModel
+     BenchmarkPhotosModel, BiasesModel
 } from "../models";
 
 class baseService {    
@@ -45,6 +45,7 @@ class baseService {
     _reportPaymentsModel;
     _chatgptPromptsModel;
     _benchmarkPhotosModel;
+    _biasesModel;
 
 
     constructor(){
@@ -83,6 +84,7 @@ class baseService {
         this._reportPaymentsModel = ReportPaymentsModel;
         this._chatgptPromptsModel = ChatgptPromptsModel;
         this._benchmarkPhotosModel = BenchmarkPhotosModel;
+        this._biasesModel = BiasesModel;
     }
 }
 
