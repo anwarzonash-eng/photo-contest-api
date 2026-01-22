@@ -21,7 +21,7 @@ import { updateHuntScorePoints, incrementHuntScorePoints, updateUserNotification
 import { manageTags } from "./utils/mailchimp/tags.js";
 import { getSecrets } from './utils/secret-manager.js';
 import {Env} from '../src/config';
-
+import {CalculateTop6RankedPhotos } from './utils/genericFunctions.js';
 
 
 const mailchimp = require("@mailchimp/mailchimp_marketing");
@@ -1262,7 +1262,8 @@ cron.schedule('30 6 * * *', () => {
   });
 
 
-  
+
+
   async function notifyComingNextPhotos(){
     try{
           global.appLogger.info(`--- [Start] Notifying Coming Next Photos Cron Job ---\n`);
@@ -1665,6 +1666,29 @@ cron.schedule('0 1 * * 5', async () => {
   scheduled: true,
   timezone: 'UTC',
 });
+
+
+   async function CalculateTopRankedPhotos(){
+      try{
+         global.appLogger.info(`[Start] Calculating Top Ranked Photos of Paid Members`);
+
+         await CalculateTop6RankedPhotos();
+
+         global.appLogger.info(`[End] Successfully Calculated Top Ranked Photos of Paid Members`);
+      }
+      catch(err){
+          global.appLogger.error(`[Error] Calculating Top Ranked Photos of Paid Members ${err.message}`);
+      }
+   }
+
+
+  cron.schedule('5 0 * * 1', () => {
+    CalculateTopRankedPhotos();
+  }, {
+    scheduled: true,
+    timezone: 'America/New_York',
+});
+  
 
 
 

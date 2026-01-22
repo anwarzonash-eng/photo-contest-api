@@ -2,16 +2,19 @@ import bcrypt from 'bcrypt'
 const CryptoJS = require("crypto-js");
 import { sequelize } from './database';
 import { HuntScoreModel, UserModel, GalleryPhotoModel, PersonalWebsiteModel, PersonalPhotoModel,
-        AdminNotificationTemplateModel, UserNotificationStatusModel, ChatgptPromptsModel
+        AdminNotificationTemplateModel, UserNotificationStatusModel, ChatgptPromptsModel, 
+        PhotoModel, BiasesModel, WeeklyHuntedPhotosRatingModel, WeeklyTopRankedPhotosModel,
+        VoteModel
     } 
 from '../models';
 import { transactionCommit, transactionRollback } from './transaction';
 const uploadPhoto = require("./aws/s3");
 import schedule from 'node-schedule';
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import { QueryTypes } from 'sequelize';
 import {Env} from '../config';
 import moment from 'moment';
+const moment_timezone = require('moment-timezone');
 
 
 export async function hashpassword(password) {
