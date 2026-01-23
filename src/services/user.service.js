@@ -755,6 +755,16 @@ export class userService extends baseService {
                 attributes:['template_name', 'website_url']
             });
 
+            const reportCount = await this._AiReportsModel.count({
+                where:{
+                    user_id: req.userData._id
+                }
+            });
+
+            paymentStatus['dataValues']['isReportGenerated'] = reportCount > 0 ? true : false;
+
+            
+
             if(template){
                 templateName = template.template_name;
                 websiteUrl = template.website_url;
