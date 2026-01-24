@@ -12,6 +12,8 @@ import { transactionCommit, transactionRollback } from '../utils/transaction';
 import { checkWebsitePublished, deleteInActiveUserPhotos } from '../utils/genericFunctions';
 const schedule = require('node-schedule');
 const scheduledJobs = new Map();
+import { manageTags } from "../utils/mailchimp/tags";
+import { getSecrets } from "../utils/secret-manager.js";
 
 
 cloudinary.config({ 
@@ -90,7 +92,7 @@ export class personalWebsiteService extends baseService {
                 let userData = await this._userModel.findOne({
                     where: { id: userId },
                     attributes: ['genres_list', 'photo_url', 'compressedProfilePic', 'compressedProfileId', 
-                        'facebook_link', 'instagram_link', 'twitter_link', 'about_me']
+                        'facebook_link', 'instagram_link', 'twitter_link', 'about_me', 'member_id']
                 });
 
 
@@ -375,6 +377,12 @@ export class personalWebsiteService extends baseService {
                     },
                     transaction: t 
                 });
+
+                let memberId = userData['member_id'];
+                const secretKey = await getSecrets();
+                await manageTags(memberId, secretKey.listId, 'User_Has_Activated_Personal_Site', 'active');
+
+                
 
 
                 // Schedule to remove photos after 10 minutes
