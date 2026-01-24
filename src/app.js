@@ -517,6 +517,7 @@ class App {
                     where: { email },
                     attributes: ['id','member_id', 'subscriptionStatus', 'membershipPlan', 'trial_type'] 
                 });
+
                 await updateGalleryHuntScorePoints(user.dataValues.id);
                 let trialType = user.dataValues.trial_type;
 
@@ -641,6 +642,8 @@ class App {
                             })
                             const secretKey = await getSecrets();
                             await manageTags(user.dataValues.member_id, secretKey.listId, 'Paid_But_Unsubed', 'inactive');
+
+                            await manageTags(user.dataValues.member_id, secretKey.listId, 'Warning_Paid_Account_Stopped', 'inactive');
                         }
                     }
                     catch(err){
@@ -652,8 +655,8 @@ class App {
                 paymentLogger.error({ message: 'Error: checkout session completed ', error: err.message });
             }
         };
-
-
+        
+        
 
         const handleOneTimePaymentFailed = async (session) => {
             try {
@@ -789,7 +792,10 @@ class App {
                         try{
                             if(user.dataValues.isPaid == true && isPaid == false){
                                 const secretKey = await getSecrets();
-                                await manageTags(user.dataValues.member_id, secretKey.listId, 'Paid_But_Unsubed', 'active');
+                                let mailchimpListId = secretKey.listId;
+                                await manageTags(user.dataValues.member_id, mailchimpListId, 'Paid_But_Unsubed', 'active');
+                                await manageTags(user.dataValues.member_id, mailchimpListId, 'Warning_Paid_Account_Stopped', 'active');
+
                             }
                         }
                         catch(error){
