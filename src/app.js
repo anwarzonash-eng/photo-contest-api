@@ -85,7 +85,7 @@ class App {
 
                 switch (event.type) {
                     case 'invoice.created':
-                        if (session?.mode === 'subscription') {
+                        if (session?.mode === 'subscription' || session.subscription) {
                             paymentLogger.info({ 
                                 message: 'Inside invoice.created Event',
                                 event_type: event.type
@@ -129,7 +129,7 @@ class App {
                         break;
 
                     case 'invoice.finalized':
-                        if (session?.mode === 'subscription') {
+                        if (session?.mode === 'subscription'|| session.subscription) {
                             const invoice = event["data"]["object"];
                             try{                            
                                 paymentLogger.info({ 
@@ -180,7 +180,7 @@ class App {
                         break;
 
                     case 'invoice.voided':
-                        if (session?.mode === 'subscription') {
+                        if (session?.mode === 'subscription' || session.subscription) {
                             const invoiceData = event["data"]["object"];
                             paymentLogger.info({ 
                                 message: 'Invoice has been voided',
@@ -206,13 +206,13 @@ class App {
                         break;
 
                     case 'invoice.payment_succeeded': 
-                        if (session?.mode === 'subscription') {     
+                        if (session?.mode === 'subscription' || session.subscription) {     
                             await handlePaymentSuccess(event["data"]["object"]);
                         }
                         break;
 
                     case 'invoice.payment_failed':    
-                        if (session?.mode === 'subscription') {                       
+                        if (session?.mode === 'subscription' || session.subscription) {                       
                             let data = event["data"]["object"];
                             paymentLogger.info({ message: 'payment failed', customer_email: data.customer_email, event_type: event.type});   
                             try{
@@ -383,14 +383,14 @@ class App {
                         break;
 
                     case 'customer.subscription.deleted':
-                         if (session?.mode === 'subscription') {     
+                         if (session?.object === 'subscription' || session.subscription) {     
                             paymentLogger.info({ message: 'subscription deleted', event: event.data, event_type: event.type});
                             await handleSubscriptionExpired(event);
                          }
                         break;
 
                     case 'customer.subscription.updated':
-                        if (session?.mode === 'subscription') {     
+                        if (session?.object === 'subscription' || session.subscription) {     
                             paymentLogger.info({ message: 'subscription updated', event: event.data, event_type: event.type});
                             await handleSubscriptionExpired(event);
                         }
@@ -406,7 +406,8 @@ class App {
 
 
                      case 'payment_intent.payment_failed': {
-                            await handleOneTimePaymentFailed(session);
+                        await handleOneTimePaymentFailed(session);
+                    
                     }
                     break;
 
@@ -475,12 +476,12 @@ class App {
 
   
         const handlePaymentSuccess = async (data) => {
-            try{
+            try{            
                 const email = data.customer_email;      
                 const subscriptionId = data.subscription; 
                 const priceId = data.lines?.data[0]?.price?.id;   
                 const stripe = new Stripe(Env.stripeSecretKey, { apiVersion: '2020-08-27' });
-                const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+                const subscription = await stripe.subscriptions.retrieve(subscriptionId);              
 
                 let membershipPlan;
                 let paidInterestCategory;
