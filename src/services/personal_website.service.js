@@ -14,6 +14,8 @@ const schedule = require('node-schedule');
 const scheduledJobs = new Map();
 import { manageTags } from "../utils/mailchimp/tags";
 import { getSecrets } from "../utils/secret-manager.js";
+const { personalWebsite60MinTagQueue } = require('../utils/jobQueue');
+
 
 
 cloudinary.config({ 
@@ -380,9 +382,25 @@ export class personalWebsiteService extends baseService {
 
                 let memberId = userData['member_id'];
                 const secretKey = await getSecrets();
-                await manageTags(memberId, secretKey.listId, 'User_Has_Activated_Personal_Site', 'active');
+                if(memberId && secretKey?.listId){
+                    await manageTags(memberId, secretKey.listId, 'User_Has_Activated_Personal_Site', 'active');
 
-                
+
+                    // Schedule Personal_Website_60min_Ready Tag after 56 minutes
+                    await personalWebsite60MinTagQueue.add(
+                        {
+                            memberId: memberId,
+                            mailchimplistId: secretKey.listId
+                        },
+                        {
+                            delay: 56 * 60 * 1000, 
+                            attempts: 3,
+                            backoff: 5000,
+                            removeOnComplete: true,
+                            removeOnFail: false,
+                        }
+                    );
+                }
 
 
                 // Schedule to remove photos after 10 minutes

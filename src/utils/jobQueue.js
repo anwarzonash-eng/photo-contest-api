@@ -1,6 +1,8 @@
 const Queue = require('bull');
 import { NotificationModel, UserModel } from '../models';
 import { sequelize } from './database';
+import { manageTags } from "./mailchimp/tags.js";
+import { getSecrets } from "./secret-manager.js";
 const redis = require('redis');
 const redisClient = redis.createClient();
 
@@ -19,6 +21,15 @@ const notificationQueue = new Queue('notificationQueue', {
     port: 6379,
   },
 });
+
+
+const personalWebsite60MinTagQueue = new Queue('Personal_Website_60min_Ready_TagQueue', {
+  redis: {
+    host: '127.0.0.1',
+    port: 6379,
+  },
+});
+
 
 // Process jobs in the queue
 notificationQueue.process(async (job) => {
@@ -42,6 +53,22 @@ notificationQueue.process(async (job) => {
     }
 });
 
+
+personalWebsite60MinTagQueue.process(async (job) => {
+    const { memberId, mailchimplistId } = job.data;
+
+    try {
+            global.appLogger.info(`[Start] Processing Personal Website 60 Min Ready Tag for memberId ${memberId}`);
+
+            await manageTags( memberId, mailchimplistId,'Personal_Website_60min_Ready', 'active');
+
+            return true;
+    }
+    catch (err) {
+        global.appLogger.error(`[Error] Personal Website 60 Min Ready Tag for memberId ${memberId}\n${err.message}\n`);
+        throw err;
+    }
+});
 
 
 export async function processNotifications(userId) {
@@ -311,4 +338,4 @@ async function createNotifications(photos, text, photo_id, receiverId) {
 };
 
 
-module.exports = {notificationQueue, processNotifications};
+module.exports = {notificationQueue, processNotifications,  personalWebsite60MinTagQueue,};
