@@ -1195,8 +1195,11 @@ export class personalWebsiteService extends baseService {
                 offset: 0
             });
 
+            personalWebsite['dataValues']['personalPhotos'] = personalPhotos;
+            personalWebsite['dataValues']['gallery'] = gallery;
 
-            return { personalWebsite, personalPhotos, gallery};
+
+            return { personalWebsite};
         }
         catch(err){
             global.appLogger.error(`[Error] Fetching Personal Website Api Call ${err.message}\n`);  
