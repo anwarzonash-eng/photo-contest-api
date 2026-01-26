@@ -99,7 +99,12 @@ const PhotoModel = sequelize.define('Photo', {
     updatedAt: {
         type: DataTypes.STRING,  
         defaultValue:  Sequelize.literal("CURRENT_TIMESTAMP"), 
-    }
+    },
+    isUploadedToBackblaze: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
 }, {
     timestamps: true,
     indexes: [

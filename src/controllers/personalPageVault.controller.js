@@ -1,7 +1,7 @@
 import baseController from "./base.controller"
 import { validationMiddleware, authMiddleware } from '../middleware';
 import { photoVaultLogsDto, createFolderDto, getPhotosListDto, updateFolderDto, uploadPhotosToVaultDto,
-    uploadPhotosToS3Dto, downloadBackBlazePhotosDto, deleteVaultPhotosDto
+    uploadPhotosToS3Dto, downloadBackBlazePhotosDto, deleteVaultPhotosDto, listHuntedPhotosDto
 } from "../dtos";
 
 
@@ -23,6 +23,7 @@ class personalPageVaultController extends baseController {
         this.router.post(`${this.parentRouterPath}/logs`, validationMiddleware(photoVaultLogsDto), authMiddleware(), this.getPhotoVaultLogs)
         this.router.post(`${this.parentRouterPath}/downloadBackBlazePhotos`, validationMiddleware(downloadBackBlazePhotosDto), authMiddleware(), this.downloadBackBlazePhotos)
         this.router.post(`${this.parentRouterPath}/deleteVaultPhotos`, validationMiddleware(deleteVaultPhotosDto), authMiddleware(), this.deleteVaultPhotos)
+        this.router.post(`${this.parentRouterPath}/listHuntedPhotos`, validationMiddleware(listHuntedPhotosDto), authMiddleware(), this.ListHuntedPhotos)
     }
 
 
@@ -201,7 +202,23 @@ class personalPageVaultController extends baseController {
         }
     }
 
-       
+   
+    ListHuntedPhotos = async (req, res, next) => {
+        try {
+                  
+            const data = await this._personalPageVaultService.ListHuntedPhotos(req);
+            if(data && data.status == "Error"){
+                res.status(400).send(this._responseTemplate('Error', undefined, data.message));
+            }
+            else{
+                res.send(this._responseTemplate('Success', data, undefined))
+            }            
+        }
+        catch (error) {
+            next(error)
+        }
+    }
+   
 
 
 }

@@ -3,7 +3,7 @@ import { validationMiddleware, authMiddleware, conditionalAuthMiddleware,  userR
 import userNotAuthorizedException from "../exceptions/userNotAuthorized.exception";
 import { selectTemplateDto, listPhotosForPersonalWebsiteDto, updatePersonalWebsiteDto, uploadPersonalWebsitePhotosDto,
     fetchPersonalPhotosDto, contactUsDto, fetchPersonalWebsiteDto, confirmUploadedPhotosDto, updatePersonalSiteDto,
-    deletePersonalPhotosDto, managePersonalPhotosDto, createPersonalGalleryDto
+    deletePersonalPhotosDto, managePersonalPhotosDto, createPersonalGalleryDto, listPersonalGalleryDto, listHuntedPhotosDto
 } from "../dtos";
 
 
@@ -29,6 +29,8 @@ class personalWebsiteController extends baseController {
         this.router.post(`${this.parentRouterPath}/delete-personal-photos`, validationMiddleware(deletePersonalPhotosDto), authMiddleware(), this.deletePersonalPhotos)
         this.router.post(`${this.parentRouterPath}/manage-personal-photos`,  validationMiddleware(managePersonalPhotosDto), authMiddleware(), this.managePersonalPhotos)
         this.router.post(`${this.parentRouterPath}/create-personal-gallery`,  validationMiddleware(createPersonalGalleryDto), authMiddleware(), this.CreatePersonalGallery)
+        this.router.post(`${this.parentRouterPath}/list-gallery`, authMiddleware(), this.ListPersonalGallery)
+      
     }
 
 
@@ -258,6 +260,24 @@ class personalWebsiteController extends baseController {
             }
         }
 
+
+        
+        ListPersonalGallery = async (req, res, next) => {
+            try {
+                  
+                    const galleryData = await this._personalWebsiteService.ListPersonalGallery(req);
+                    if(galleryData && galleryData.status == "Error"){
+                        res.status(400).send(this._responseTemplate('Error', undefined, galleryData.message));
+                    }
+                    else{
+                        res.send(this._responseTemplate('Success', galleryData, undefined))
+                    }
+                
+            }
+            catch (error) {
+                next(error)
+            }
+        }
 
 }
 

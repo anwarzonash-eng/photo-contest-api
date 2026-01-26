@@ -304,11 +304,11 @@ export class personalPageVaultService extends baseService {
 
                 let query = `SELECT
                     (
-                        SELECT COUNT("fileCount")
-                        FROM "photo_vault_logs"
+                        SELECT COUNT("id")
+                        FROM "personal_photos_vault"
                         WHERE "user_id" = '${userId}'
-                        AND "actionType" = 'Upload'
-                        AND "notes"='Secured in Vault'
+                        AND status='uploaded_to_BackBlaze'
+                        AND "isDeleted"=false
                     ) AS "photos_stored",
                     (
                         SELECT COUNT("fileCount")
@@ -441,7 +441,38 @@ export class personalPageVaultService extends baseService {
                         user_id: userId
                     }
                 });
-                
+
+
+                const isPhotosCount = await this._personalPageVaultPhotosModel.count({
+                    where:{
+                        user_id: userId,
+                        isDeleted: false,
+                        status: 'uploaded_to_BackBlaze'
+                    }
+                });
+
+                if(isPhotosCount == 0){
+                    let userData = await this._userModel.findOne({
+                        where:{
+                            id: userId
+                        },
+                        attributes:['member_id']
+                    });
+
+                    const secretKey = await getSecrets();
+                    let mailchimpListId = secretKey.listId;
+                    await manageTags(userData['member_id'], mailchimpListId, 'User_Has_Photos_In_Vault', 'inactive');
+
+                    await this._userModel.update({
+                        isAssignedPhotosVaultTag: false
+                    }, {
+                        where:{
+                            id: userId
+                        }
+                    });
+                }
+
+
                 global.appLogger.info(`\n---- End Deleted Vault Photos Api Call ----`);
                 return {message: 'Photos Deleted Successfully!'}
         }   
@@ -531,6 +562,34 @@ export class personalPageVaultService extends baseService {
     }
 
 
+    
+
+    async ListHuntedPhotos(req){
+        try {     
+                let userId = req.userData._id;     
+                global.appLogger.info(`\n---- Start Fetching Hunted Photos Api Call By User with id ${userId} ----`);
+                let offSet = req.body.offSet || 0;
+                
+                const photos = await this._photoModel.findAll({
+                    where: {
+                        isQueued: false,
+                        isDeleted: false,
+                        isUploadedToBackblaze: false
+                    },
+                    attributes: ['id', 'compressedImageId', ['compressedImageUrl', 'photo_url'], 'createdAt'],
+                    order: [['createdAt', 'DESC']],
+                    offset: offSet,
+                    limit: 24
+                });
+
+                return { photos };
+        }
+        catch (error) {
+            global.appLogger.error(`[Error] Fetching Hunted Photos Api Call ${err.message}\n`);  
+            return { status: 'Error', message: 'Something went wrong while fetching hunted photos' };
+        }
+    }
+    
     async UploadPhotosToVault(req){
         try{
                 let userId = req.userData._id; 

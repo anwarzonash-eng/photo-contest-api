@@ -959,6 +959,34 @@ export class personalWebsiteService extends baseService {
         }
     }
 
+
+    
+    async ListPersonalGallery(req){
+        try{
+
+                let userId = req.userData?._id
+                global.appLogger.info(`\n---- Fetch Personal Gallery Api Call by user with Id ${userId} ----`);
+
+                const gallery = await this._personalGalleriesModel.findAll({
+                    where:{
+                        user_id: userId,
+                        isDeleted: false
+                    },
+                    order:[['createdAt', 'DESC']],
+                    attributes:['id', 'name']
+                }); 
+                
+                global.appLogger.info(`\n---- End Fetching Personal Gallery Api Call by user with Id ${userId} ----`);
+                    
+                return { gallery };
+
+        }
+        catch(err){
+            global.appLogger.error(`[Error] Fetching Personal Gallery Api Call ${err.message}\n`);  
+            return { status: 'Error', message: 'Something went wrong while fetching personal gallery.' };
+        }
+    }
+
        async uploadPhotos(req){
         try {    
                 let userId = req.userData._id;  
@@ -1302,5 +1330,4 @@ export class personalWebsiteService extends baseService {
         }
     }
 
-    
 }

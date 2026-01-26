@@ -17,6 +17,6 @@ export { AddTownHallDto, UpdateTownHallDto, getTownhallByIdDto,
 } from './townhall.dto.js';
 export { PersonalPageFollowUserDto, getSuggestedFollowersDto } from './personal_page_followers.dto.js';
 export { photoVaultLogsDto, uploadPhotosToS3Dto, createFolderDto, getPhotosListDto, updateFolderDto, 
-    uploadPhotosToVaultDto, downloadBackBlazePhotosDto, deleteVaultPhotosDto
+    uploadPhotosToVaultDto, downloadBackBlazePhotosDto, deleteVaultPhotosDto, listHuntedPhotosDto
 } from "./personal_page_vault.dto.js";
 export { chatgptDto, addChatgptPromptDto } from "./chatgpt.dto.js";

@@ -108,3 +108,9 @@ export class uploadPhotosToVaultDto {
     photoCount;
 }
 
+
+export class listHuntedPhotosDto{
+  @IsInt()
+  @IsOptional()
+  offSet;
+}
