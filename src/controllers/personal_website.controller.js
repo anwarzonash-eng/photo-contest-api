@@ -27,7 +27,7 @@ class personalWebsiteController extends baseController {
         this.router.post(`${this.parentRouterPath}/detail`, authMiddleware(), this.getPersonalWebsite)
         this.router.patch(`${this.parentRouterPath}/updateData`, validationMiddleware(updatePersonalSiteDto), authMiddleware(), this.updatePersonalWebsite)
         this.router.post(`${this.parentRouterPath}/delete-personal-photos`, validationMiddleware(deletePersonalPhotosDto), authMiddleware(), this.deletePersonalPhotos)
-          this.router.post(`${this.parentRouterPath}/manage-personal-photos`,  validationMiddleware(managePersonalPhotosDto), authMiddleware(), this.managePersonalPhotos)
+        this.router.post(`${this.parentRouterPath}/manage-personal-photos`,  validationMiddleware(managePersonalPhotosDto), authMiddleware(), this.managePersonalPhotos)
     }
 
 

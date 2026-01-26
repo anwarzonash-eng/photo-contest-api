@@ -6,7 +6,7 @@ import { UserModel, NotificationModel, PhotoModel, GalleryPhotoModel, PhotoClick
      PersonalPageFollowEventModel, PersonalPageFollowRelationModel, FoldersModel, PersonalPageVaultPhotosModel,
      PhotoVaultLogsModel, PhotoVaultBatchModel, AdminNotificationTemplateModel, ActivityCalloutModel, 
      UserNotificationStatusModel, TempUserActionsModel, AiReportsModel, ReportPaymentsModel, ChatgptPromptsModel,
-     BenchmarkPhotosModel, BiasesModel, WeeklyHuntedPhotosRatingModel, WeeklyTopRankedPhotosModel
+     BenchmarkPhotosModel, BiasesModel, WeeklyHuntedPhotosRatingModel, WeeklyTopRankedPhotosModel, PersonalGalleriesModel
 } from "../models";
 
 class baseService {    
@@ -48,6 +48,7 @@ class baseService {
     _biasesModel;
     _weeklyHuntedPhotosRatingModel;
     _weeklyTopRankedPhotosModel;
+    _personalGalleriesModel;
 
 
     constructor(){
@@ -89,6 +90,7 @@ class baseService {
         this._biasesModel = BiasesModel;
         this._weeklyHuntedPhotosRatingModel = WeeklyHuntedPhotosRatingModel;
         this._weeklyTopRankedPhotosModel = WeeklyTopRankedPhotosModel;
+        this._personalGalleriesModel = PersonalGalleriesModel;
     }
 }
 
