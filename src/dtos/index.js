@@ -10,7 +10,7 @@ export {AdminLoginDto, getUsersListDto, updateUserByIdDto, getWeeklyTopTenListDt
 } from "./admin.dto.js";
 export { selectTemplateDto, listPhotosForPersonalWebsiteDto, updatePersonalWebsiteDto, uploadPersonalWebsitePhotosDto, 
     fetchPersonalPhotosDto, fetchPersonalWebsiteDto, contactUsDto, confirmUploadedPhotosDto, updatePersonalSiteDto,
-    deletePersonalPhotosDto, managePersonalPhotosDto
+    deletePersonalPhotosDto, managePersonalPhotosDto, createPersonalGalleryDto
 } from "./personal_website.dto.js";
 export { AddTownHallDto, UpdateTownHallDto, getTownhallByIdDto, 
     removeTownhallDto, AddMonthlyTownHallDto, UpdateMonthlyTownHallDto

@@ -21,7 +21,12 @@ const PersonalGalleriesModel = sequelize.define('personal-galleries', {
     name:{
         type: DataTypes.STRING,
         allowNull: false        
-    }
+    },
+    isDeleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
+    },
 }, {
     timestamps: true
 });

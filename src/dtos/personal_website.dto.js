@@ -314,3 +314,10 @@ export class managePersonalPhotosDto{
     @IsUUID("4",{ each: true })
     photoIds;
 }
+
+
+export class createPersonalGalleryDto{
+  @IsString()
+  @IsNotEmpty()
+  galleryName;
+}
