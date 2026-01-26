@@ -254,6 +254,11 @@ const UserModel = sequelize.define('User', {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false
+    },
+    isAssignedPhotosVaultTag:{
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
     }
 }, {
     hooks: {

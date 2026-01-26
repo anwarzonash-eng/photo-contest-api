@@ -8,6 +8,9 @@ const schedule = require('node-schedule');
 const scheduledJobs = new Map();
 import {Op} from 'sequelize';
 import { deletePhotosFromCloudinary } from '../utils/cloudinary/photo_optimization';
+import { manageTags } from '../utils/mailchimp/tags';
+import { getSecrets } from "../utils/secret-manager.js";
+
 
 export class personalPageVaultService extends baseService {
 
@@ -592,6 +595,27 @@ export class personalPageVaultService extends baseService {
                     if(userPhotos.length > 0 ){
                         global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
                         await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
+        
+                        let userData = await this._userModel.findOne({
+                            where:{
+                                id: userId
+                            },
+                            attributes:['member_id', 'isAssignedPhotosVaultTag']
+                        });
+
+                        if(userData['isAssignedPhotosVaultTag'] == false){
+                            const secretKey = await getSecrets();
+                            let mailchimpListId = secretKey.listId;
+                        
+                            await manageTags(userData['member_id'], mailchimpListId, 'User_Has_Photos_In_Vault', 'active');
+                            await this._userModel.update({
+                                isAssignedPhotosVaultTag: true
+                            }, {
+                                where:{
+                                    id: userId
+                                }
+                            });
+                        }
                     }
                         
                     let batchData = await this._photoVaultBatchModel.findOne({
@@ -600,6 +624,8 @@ export class personalPageVaultService extends baseService {
                         },
                         attributes:['photosCount']
                     });
+
+
 
                     let photoCount = batchData?.dataValues?.['photosCount']; 
                     await this.UpdatePhotoVaultLogs({
