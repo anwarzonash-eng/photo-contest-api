@@ -29,7 +29,6 @@ class personalWebsiteController extends baseController {
         this.router.post(`${this.parentRouterPath}/delete-personal-photos`, validationMiddleware(deletePersonalPhotosDto), authMiddleware(), this.deletePersonalPhotos)
         this.router.post(`${this.parentRouterPath}/manage-personal-photos`,  validationMiddleware(managePersonalPhotosDto), authMiddleware(), this.managePersonalPhotos)
         this.router.post(`${this.parentRouterPath}/create-personal-gallery`,  validationMiddleware(createPersonalGalleryDto), authMiddleware(), this.CreatePersonalGallery)
-        this.router.post(`${this.parentRouterPath}/fetch-personal-site`, authMiddleware(), this.FetchPersonalSite)
     }
 
 
@@ -260,25 +259,6 @@ class personalWebsiteController extends baseController {
         }
 
 
-        FetchPersonalSite = async (req, res, next) => {
-            try {
-
-                    const data = await this._personalWebsiteService.FetchPersonalSite(req);
-                    if(data && data.status == "Error"){
-                        res.status(400).send(this._responseTemplate('Error', undefined, data.message));
-                    }
-                    else{
-                        res.send(this._responseTemplate('Success', data, undefined))
-                    }
-                
-            }
-            catch (error) {
-                next(error)
-            }
-        }
-
-
-        
 }
 
 export default personalWebsiteController;

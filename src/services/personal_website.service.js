@@ -1163,7 +1163,40 @@ export class personalWebsiteService extends baseService {
                 return { message: 'Personal Website does not exist'}
              }
 
-            return { personalWebsite };
+             const personalPhotos = await this._personalPhotoModel.findAll({
+                where: {
+                    isDeleted: false,
+                    user_id: userId,
+                },
+                attributes: [
+                    'id',
+                    'compressedImageId',
+                    ['compressedImageUrl', 'photo_url'],
+                    'createdAt',
+                ],
+                order: [
+                    [literal(`CASE WHEN "sort_order" IS NOT NULL THEN 0 ELSE 1 END`), 'ASC'],
+                    ['sort_order', 'ASC'],
+                    ['createdAt', 'ASC'],
+                    ['id', 'ASC'],
+                ],
+                limit: 15,
+                offset: 0
+            });
+
+            const gallery = await this._personalGalleriesModel.findAll({
+                where: {
+                    user_id: userId,
+                    isDeleted: false,
+                },
+                attributes: ['id', 'name', 'createdAt'],
+                order: [['createdAt', 'DESC']],
+                limit: 10,
+                offset: 0
+            });
+
+
+            return { personalWebsite, personalPhotos, gallery};
         }
         catch(err){
             global.appLogger.error(`[Error] Fetching Personal Website Api Call ${err.message}\n`);  
@@ -1266,61 +1299,5 @@ export class personalWebsiteService extends baseService {
         }
     }
 
-
-    async FetchPersonalSite(req){
-        try{
-
-            let userId = req.userData._id;
-            global.appLogger.info(`\n---- Start Fetching Personal Site Api Call by user with Id ${userId} ----`);
-
-            let personalSite = await this._personalWebsiteModel.findOne({
-                where: {
-                    user_id: userId
-                },
-                attributes: [
-                    'id', 'user_id', 'website_url', 'user_name', 'template_name'
-                ]
-            });
-
-            const personalPhotos = await this._personalPhotoModel.findAll({
-                where: {
-                    isDeleted: false,
-                    user_id: userId,
-                },
-                attributes: [
-                    'id',
-                    'compressedImageId',
-                    ['compressedImageUrl', 'photo_url'],
-                    'createdAt',
-                ],
-                order: [
-                    [literal(`CASE WHEN "sort_order" IS NOT NULL THEN 0 ELSE 1 END`), 'ASC'],
-                    ['sort_order', 'ASC'],
-                    ['createdAt', 'ASC'],
-                    ['id', 'ASC'],
-                ],
-                limit: 15,
-                offset: 0
-            });
-
-            const gallery = await this._personalGalleriesModel.findAll({
-                where: {
-                    user_id: userId,
-                    isDeleted: false,
-                },
-                attributes: ['id', 'name', 'createdAt'],
-                order: [['createdAt', 'DESC']],
-                limit: 10,
-                offset: 0
-            });
-
-            return { personalSite, personalPhotos, gallery }
-
-        }
-        catch(err){
-            global.appLogger.error(`[Error] Fetching Personal Site Api Call ${err.message}\n`);  
-            return { status: 'Error', message: 'Something went wrong while fetching personal site' };
-        }   
-    }
     
 }
