@@ -50,10 +50,6 @@ const PersonalPageVaultPhotosModel = sequelize.define('personal_photos_vault', {
         type:DataTypes.BIGINT,
         allowNull:true
     },
-    status:{
-        type:DataTypes.STRING,
-        allowNull:false
-    },
     status: {
         type: DataTypes.ENUM(
             PhotoVaultStatusEnum.PENDING,
@@ -62,6 +58,11 @@ const PersonalPageVaultPhotosModel = sequelize.define('personal_photos_vault', {
         ),
         allowNull: false,
         defaultValue: PhotoVaultStatusEnum.PENDING,
+    },
+    isHunted:{
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: true
     },
     isDeleted: {
         type: DataTypes.BOOLEAN,

@@ -22,9 +22,9 @@ export class personalPageVaultService extends baseService {
          
                 let { batchId } = req.body;
                 let photoCount = Number(req.body.photoCount);
-                    
+                let photoIds = req.body.photoIds || [];
                 
-                if(req.files && req.files?.photoUrl){ 
+                if(req.files && req.files?.photoUrl || photoIds.length > 0 ){ 
                     const [batch, created] =  await this._photoVaultBatchModel.findOrCreate({
                         where: {    
                             user_id: userId,
@@ -39,38 +39,65 @@ export class personalPageVaultService extends baseService {
                     });
                     
 
-                    let fileName =  req.files.photoUrl?.name;  
-                    let photosData;    
-                    try{     
+                    let uploadedPhotos = []; 
+                    if (req.files?.photoUrl) {
 
-                        photosData = await uploadPhoto.uploadPhoto(req.files.photoUrl);  
-                        global.appLogger.info(`Photo Vault Uploaded Successfully to S3 By BatchId ${batchId}`);   
+                        let fileName = req.files.photoUrl.name;  
+                        try {
+                            
+                            let photosData = await uploadPhoto.uploadPhoto(req.files.photoUrl);  
+                            global.appLogger.info(`Photo Vault Uploaded Successfully to S3 By BatchId ${batchId}`);  
+
+                            let folderId = req.body.folderId || null;
+                            let newPhotoVault = await this._personalPageVaultPhotosModel.create({
+                                user_id: userId,
+                                folder_id: folderId,
+                                batch_id: batchId,
+                                fileName,
+                                photo_url: photosData,
+                                status: 'uploaded_to_s3',
+                                isHunted: false
+                            });
+
+                            uploadedPhotos.push({ id: newPhotoVault.id, photo_url: photosData });
+
+                        } 
+                        catch (err) {
+                            await this._photoVaultBatchModel.decrement(
+                                'photosCount',
+                                { by: 1, where: { id: batch.id } }
+                            );
+                            global.appLogger.info(`[Error] Photo Vault Upload to S3 for BatchId ${batchId} \n ${err.message} \n`);  
+                        }
                     }
-                    catch(err)
-                    {
-                        await this._photoVaultBatchModel.decrement(
-                            'photosCount',
-                            { 
-                                by: 1, 
-                                where: { 
-                                    id: batch.id 
+
+                    if (photoIds.length > 0) {
+                        const photos = await this._photoModel.findAll({
+                            where: { 
+                                id: 
+                                {
+                                     [Op.in]: photoIds 
                                 } 
-                            }
-                        );
+                            },
+                            attributes: ['id', 'photo_url']
+                        });
 
-                        global.appLogger.info(`[Error] Photo Vault Upload to S3 for BatchId ${batchId} \n ${err.message} \n`);  
+                        for (let photo of photos) {
+                            let fileName = photo['photo_url'].split('/').pop();
+                            let newPhotoVault = await this._personalPageVaultPhotosModel.create({
+                                user_id: userId,
+                                folder_id: req.body.folderId || null,
+                                batch_id: batchId,
+                                fileName,
+                                photo_url: photo.photo_url,
+                                status: 'uploaded_to_s3',
+                                isHunted: true
+                            });
+                            uploadedPhotos.push({ id: newPhotoVault.id, photo_url: photo.photo_url });
+                        }
                     }
 
-                    let folderId = req.body.folderId ? req.body.folderId : null;
-                    let newPhotoVault = await this._personalPageVaultPhotosModel.create({
-                        user_id: userId,
-                        folder_id: folderId,
-                        batch_id: batchId,
-                        fileName,
-                        photo_url: photosData,
-                        status: 'uploaded_to_s3'
-                    });
-                    let photoId = newPhotoVault.dataValues.id;
+                    const isNewUpload = !!req.files?.photoUrl;
 
                     let batchData = await this._photoVaultBatchModel.findOne({
                         where:{
@@ -80,11 +107,6 @@ export class personalPageVaultService extends baseService {
                     });
 
                     if(batchData && batchData.dataValues.is_confirmed){
-                        const userPhotos = [{
-                            id: photoId,
-                            photo_url: photosData
-                        }]
-
                         let folderId = batchData.dataValues.folder_id;
                         if(!folderId){
                             let folderData = await this._personalPageVaultPhotosModel.findOne({
@@ -116,7 +138,41 @@ export class personalPageVaultService extends baseService {
                         });
 
                         global.appLogger.info(`Start Uploading To BackBlaze By BatchId ${batchId} while batch is already confirmed`);  
-                        await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
+                        await uploadPhoto.uploadS3PhotosToVault(uploadedPhotos, userId, folderId);
+
+                        
+                        let userData = await this._userModel.findOne({
+                            where:{
+                                id: userId
+                            },
+                            attributes:['member_id', 'isAssignedPhotosVaultTag']
+                        });
+
+                        if(userData['isAssignedPhotosVaultTag'] == false){
+                            const secretKey = await getSecrets();
+                            let mailchimpListId = secretKey.listId;
+                        
+                            await manageTags(userData['member_id'], mailchimpListId, 'User_Has_Photos_In_Vault', 'active');
+                            
+                            await this._userModel.update({
+                                isAssignedPhotosVaultTag: true
+                            }, {
+                                where:{
+                                    id: userId
+                                }
+                            });
+                        }
+
+                        await this._photoModel.update(
+                            { isUploadedToBackblaze: true },
+                            {
+                                where: {
+                                    id: { 
+                                        [Op.in]: photoIds 
+                                    }
+                                }
+                            }
+                        );
 
                         global.appLogger.info(`[End] Successfully Uploaded To BackBlaze By BatchId ${batchId} while batch is already confirmed`); 
 
@@ -158,7 +214,39 @@ export class personalPageVaultService extends baseService {
                                         );
 
                                         await uploadPhoto.uploadS3PhotosToVault(pendingbackBlazePhotos, userId, pendingbackBlazePhotos[0]['folder_id']);
+                                        const photoUrls = pendingbackBlazePhotos.map(p => p.photo_url);
+                                        await this._photoModel.update(
+                                            { isUploadedToBackblaze: true },
+                                            {
+                                                where: {
+                                                    photo_url: {
+                                                        [Op.in]: photoUrls
+                                                    }
+                                                }
+                                            }
+                                        );
+                                        
+                                        
+                                        let userData = await this._userModel.findOne({
+                                            where:{
+                                                id: userId
+                                            },
+                                            attributes:['member_id', 'isAssignedPhotosVaultTag']
+                                        });
 
+                                        if(userData['isAssignedPhotosVaultTag'] == false){
+                                            const secretKey = await getSecrets();
+                                            let mailchimpListId = secretKey.listId;
+                                        
+                                            await manageTags(userData['member_id'], mailchimpListId, 'User_Has_Photos_In_Vault', 'active');
+                                            await this._userModel.update({
+                                                isAssignedPhotosVaultTag: true
+                                            }, {
+                                                where:{
+                                                    id: userId
+                                                }
+                                            });
+                                        }
                                     }
                                     
                                     let batchPhotos  = await this._photoVaultBatchModel.findOne({
@@ -177,8 +265,10 @@ export class personalPageVaultService extends baseService {
                                     }
                                 }
                                 else{    
-                                    let userId =  batchData.dataValues.user_id;
-                                    await this.deleteUserPhotosFromS3(batchId, userId);
+                                    let userId = batchData.dataValues.user_id;
+                                    if(isNewUpload){
+                                        await this.deleteUserPhotosFromS3(batchId, userId);
+                                    }
 
                                     await this._personalPageVaultPhotosModel.destroy({
                                         where:{
@@ -211,7 +301,7 @@ export class personalPageVaultService extends baseService {
 
                                 
                     global.appLogger.info(`\n---- End Personal Page Vault Upload Photos Api Call ----`);                            
-                    return { photo: photosData };
+                    return { photo: uploadedPhotos };
                 }     
         }
         catch(err){
@@ -655,7 +745,19 @@ export class personalPageVaultService extends baseService {
                     if(userPhotos.length > 0 ){
                         global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
                         await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
-        
+                        
+                        const photoUrls = userPhotos.map(p => p.photo_url);                
+                        await this._photoModel.update(
+                            { isUploadedToBackblaze: true },
+                            {
+                                where: {
+                                    photo_url: {
+                                        [Op.in]: photoUrls
+                                    }
+                                }
+                            }
+                        );                                                           
+
                         let userData = await this._userModel.findOne({
                             where:{
                                 id: userId
