@@ -572,6 +572,7 @@ export class personalPageVaultService extends baseService {
                 
                 const photos = await this._photoModel.findAll({
                     where: {
+                        user_id: userId,
                         isQueued: false,
                         isDeleted: false,
                         isUploadedToBackblaze: false
