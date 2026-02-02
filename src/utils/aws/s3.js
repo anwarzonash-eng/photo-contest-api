@@ -59,8 +59,12 @@ export const uploadS3PhotosToVault = async (s3Keys, userId, folderId) => {
     try {
 
          for (const s3Key of s3Keys) {
-            let photoUrl = s3Key.photo_url?.replace(/^https?:\/\/[^/]+\/?/, '');
-            
+
+             let photoUrl = s3Key.photo_url?.replace(/^https?:\/\/[^/]+\/?/, '');
+
+             photoUrl = decodeURIComponent(photoUrl);
+
+      
             // downlad photo from s3 bucket
             const s3Object = await s3.getObject({
                 Bucket: Env.Bucket,

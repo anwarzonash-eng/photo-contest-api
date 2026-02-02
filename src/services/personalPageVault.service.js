@@ -23,7 +23,7 @@ export class personalPageVaultService extends baseService {
                 let { batchId } = req.body;
                 let photoCount = Number(req.body.photoCount);
                 let photoIds = req.body.photoIds || [];
-                
+                              
                 if(req.files && req.files?.photoUrl || photoIds.length > 0 ){ 
                     const [batch, created] =  await this._photoVaultBatchModel.findOrCreate({
                         where: {    
@@ -40,6 +40,7 @@ export class personalPageVaultService extends baseService {
                     
 
                     let uploadedPhotos = []; 
+                    let folderId = req.body.folderId || batch?.['folder_id'] || null;  
                     if (req.files?.photoUrl) {
 
                         let fileName = req.files.photoUrl.name;  
@@ -48,7 +49,7 @@ export class personalPageVaultService extends baseService {
                             let photosData = await uploadPhoto.uploadPhoto(req.files.photoUrl);  
                             global.appLogger.info(`Photo Vault Uploaded Successfully to S3 By BatchId ${batchId}`);  
 
-                            let folderId = req.body.folderId || null;
+                          
                             let newPhotoVault = await this._personalPageVaultPhotosModel.create({
                                 user_id: userId,
                                 folder_id: folderId,
@@ -71,6 +72,7 @@ export class personalPageVaultService extends baseService {
                         }
                     }
 
+
                     if (photoIds.length > 0) {
                         const photos = await this._photoModel.findAll({
                             where: { 
@@ -86,7 +88,8 @@ export class personalPageVaultService extends baseService {
                             let fileName = photo['photo_url'].split('/').pop();
                             let newPhotoVault = await this._personalPageVaultPhotosModel.create({
                                 user_id: userId,
-                                folder_id: req.body.folderId || null,
+                                folder_id: folderId,
+                                photo_id: photo.id,
                                 batch_id: batchId,
                                 fileName,
                                 photo_url: photo.photo_url,
@@ -106,6 +109,8 @@ export class personalPageVaultService extends baseService {
                         attributes:['is_confirmed', 'folder_id']
                     });
 
+ 
+                    
                     if(batchData && batchData.dataValues.is_confirmed){
                         let folderId = batchData.dataValues.folder_id;
                         if(!folderId){
@@ -184,6 +189,7 @@ export class personalPageVaultService extends baseService {
               
                     }
                      
+                    
 
                     // Schedule Job to remove AWS S3 temporary photos after 90 minutes
                     if (batchId && !scheduledJobs.has(batchId)) {
@@ -194,12 +200,24 @@ export class personalPageVaultService extends baseService {
                                     where:{
                                         batch_id: batchId
                                     },
-                                    attributes:['is_confirmed', 'user_id']
+                                    attributes:['is_confirmed', 'user_id', 'folder_id']
                                 });
 
                                 let userId = batchData.dataValues.user_id;
+                                let folderId = batchData.dataValues.folder_id;
                                 
-                                if(batchData && batchData.dataValues.is_confirmed){         
+                                if(batchData && batchData.dataValues.is_confirmed){   
+                                    if(folderId){
+                                        await this._personalPageVaultPhotosModel.update({
+                                            folder_id: folderId,
+                                        }, {
+                                            where: {
+                                                batch_id: batchId,
+                                                user_id: userId
+                                            }
+                                        });   
+                                    }   
+
                                     const pendingbackBlazePhotos = await this._personalPageVaultPhotosModel.findAll({
                                         where: {
                                             batch_id: batchId,
@@ -366,16 +384,29 @@ export class personalPageVaultService extends baseService {
                     batch_id: batchId,
                     user_id: userId
                 },
-                attributes:['photo_url'],
+                attributes:['photo_url', 'isHunted'],
                 raw: true,
             });
 
-            const deletedPhotos = userPhotos?.map((
+            const deletedPhotos = userPhotos
+            .filter(photo => photo.isHunted === false)
+            .map((
                 { photo_url }) => photo_url?.replace(/^https?:\/\/[^/]+\/?/, '')
             ).filter(Boolean); 
                                 
             if(deletedPhotos.length > 0 ){
                 await uploadPhoto.deletePhotosFromS3(deletedPhotos);
+                
+                await this._personalPageVaultPhotosModel.update({
+                    photo_url: ''
+                }, {
+                    where:{
+                        batch_id: batchId,
+                        user_id: userId,
+                        isHunted: false
+                    }
+                });
+
                 global.appLogger.info(`[End] Successfully Removed All Photos From S3 for Batch Id ${batchId}`)
             }
 
@@ -683,6 +714,7 @@ export class personalPageVaultService extends baseService {
     
     async UploadPhotosToVault(req){
         try{
+
                 let userId = req.userData._id; 
                 global.appLogger.info(`\n---- Start Uploading Photos To Folder Api Call By User with id ${userId} ----`);  
     
@@ -692,7 +724,7 @@ export class personalPageVaultService extends baseService {
                     where: {    
                         user_id: userId,
                         batch_id: batchId,
-                        folder_id: folderId
+                        //folder_id: folderId
                     },
                     defaults: { 
                         user_id: userId,
@@ -702,6 +734,7 @@ export class personalPageVaultService extends baseService {
                 });
 
                 
+
 
                 await this._personalPageVaultPhotosModel.update({
                     folder_id: folderId,
@@ -713,7 +746,8 @@ export class personalPageVaultService extends baseService {
                 });
 
                 await this._photoVaultBatchModel.update({
-                    is_confirmed: true
+                    is_confirmed: true,
+                    folder_id: folderId
                 }, {
                     where:{
                         batch_id: batchId,
@@ -891,15 +925,24 @@ export class personalPageVaultService extends baseService {
                         user_id: userId, 
                         folder_id: folderId,
                         isDeleted: false,
-                        compressedImageUrl: {
-                            [Op.ne]: null
-                        }
+                        //compressedImageUrl: {
+                        //    [Op.ne]: null
+                        //}
                     },
-                    attributes:[ 'id', 'compressedImageUrl', 'compressedImageId', 'folder_id', 'createdAt', 
+                    include: [{
+                        model: this._photoVaultBatchModel,
+                        required: true, // INNER JOIN
+                        attributes: [],
+                        where: {
+                            is_confirmed: true
+                        }
+                    }],
+                    attributes:[ 'id', 'photo_url', 'compressedImageUrl', 'compressedImageId', 'folder_id', 'createdAt', 
                         'fileName', 'fileSize', 'fileType'],
                     order: orderBy,
                     offset: offSet,    
-                    limit: req.body?.limit || 10
+                    limit: req.body?.limit || 10,
+                     distinct: true
                 }); 
                 global.appLogger.info(`\n---- End Fetching All Photos Api Call ----`);
                 

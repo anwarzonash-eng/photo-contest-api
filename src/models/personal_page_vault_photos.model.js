@@ -1,7 +1,7 @@
 import {sequelize}  from "../utils/database";
 import { Sequelize, DataTypes } from 'sequelize';
 import { PhotoVaultStatusEnum } from "../enums/photoVaultStatus.enum";
-
+import PhotoVaultBatchModel from "./photo_vault_batches.model";
 
 const PersonalPageVaultPhotosModel = sequelize.define('personal_photos_vault', {
     id: {
@@ -21,6 +21,10 @@ const PersonalPageVaultPhotosModel = sequelize.define('personal_photos_vault', {
     batch_id:{
         type: DataTypes.UUID,
         allowNull: false
+    },
+    photo_id: {
+        type: DataTypes.UUID,
+        allowNull: true
     },
     photo_url: {
         type: DataTypes.STRING,
@@ -74,6 +78,16 @@ const PersonalPageVaultPhotosModel = sequelize.define('personal_photos_vault', {
     timestamps: true,
 });
 
+
+PhotoVaultBatchModel.hasMany(PersonalPageVaultPhotosModel, {
+  foreignKey: 'batch_id',
+  sourceKey: 'batch_id'
+});
+
+PersonalPageVaultPhotosModel.belongsTo(PhotoVaultBatchModel, {
+   foreignKey: 'batch_id',
+   targetKey: 'batch_id'  
+});
 
 
 PersonalPageVaultPhotosModel.sync({alter:true});
