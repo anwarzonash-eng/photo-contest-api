@@ -154,9 +154,30 @@ export class personalPageVaultService extends baseService {
                             }
                         });
 
-                        global.appLogger.info(`Start Uploading To BackBlaze By BatchId ${batchId} while batch is already confirmed`);  
-                        await uploadPhoto.uploadS3PhotosToVault(uploadedPhotos, userId, folderId);
 
+                        try{
+                            global.appLogger.info(`Start Uploading To BackBlaze By BatchId ${batchId} while batch is already confirmed`);  
+                            await uploadPhoto.uploadS3PhotosToVault(uploadedPhotos, userId, folderId);
+                        }
+                        catch(err){
+                            global.appLogger.error(`[Error] Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId} \n ${err.message} \n`);
+
+                            await this._photoModel.update(
+                                { isUploadedToBackblaze: false },
+                                {
+                                    where: {
+                                        id: { 
+                                            [Op.in]: photoIds 
+                                        }
+                                    }
+                                }
+                            );       
+                            
+                            return;
+                        }
+
+                        
+                              
                         
                         let userData = await this._userModel.findOne({
                             where:{
@@ -190,7 +211,9 @@ export class personalPageVaultService extends baseService {
                         });
               
                     }
-                     
+
+                    
+            
                     
 
                     // Schedule Job to remove AWS S3 temporary photos after 90 minutes
@@ -246,9 +269,26 @@ export class personalPageVaultService extends baseService {
                                             }
                                         );
 
-                                        await uploadPhoto.uploadS3PhotosToVault(pendingbackBlazePhotos, userId, pendingbackBlazePhotos[0]['folder_id']);
-                                      
-                                      
+                                        try{
+                                            await uploadPhoto.uploadS3PhotosToVault(pendingbackBlazePhotos, userId, pendingbackBlazePhotos[0]['folder_id']);
+                                        }
+                                        catch(err){
+
+                                            global.appLogger.error(`[Error] Uploading Pending S3 Photos to BackBlaze inside folder ${pendingbackBlazePhotos[0]['folder_id']} for batch ${batchId} \n ${err.message} \n`);
+                                            await this._photoModel.update(
+                                                { isUploadedToBackblaze: false },
+                                                {
+                                                    where: {
+                                                        photo_url: {
+                                                            [Op.in]: photoUrls
+                                                        }
+                                                    }
+                                                }
+                                            ); 
+
+                                            return;        
+                                        }
+
                                         
                                         let userData = await this._userModel.findOne({
                                             where:{
@@ -795,9 +835,27 @@ export class personalPageVaultService extends baseService {
                         );         
 
 
-                        global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
-                        await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
-                                                                       
+                        try{                         
+                            global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
+                            await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
+                        }
+                        catch(err){
+                            global.appLogger.error(`[Error] Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId} \n ${err.message} \n`);
+
+                            await this._photoModel.update(
+                                { isUploadedToBackblaze: false },
+                                {
+                                    where: {
+                                        photo_url: {
+                                            [Op.in]: photoUrls
+                                        }
+                                    }
+                                }
+                            );     
+                            
+                            return;
+                        }
+                                                                        
 
                         let userData = await this._userModel.findOne({
                             where:{
