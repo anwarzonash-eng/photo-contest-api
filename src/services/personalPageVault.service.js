@@ -112,6 +112,18 @@ export class personalPageVaultService extends baseService {
  
                     
                     if(batchData && batchData.dataValues.is_confirmed){
+
+                        await this._photoModel.update(
+                            { isUploadedToBackblaze: true },
+                            {
+                                where: {
+                                    id: { 
+                                        [Op.in]: photoIds 
+                                    }
+                                }
+                            }
+                        );
+
                         let folderId = batchData.dataValues.folder_id;
                         if(!folderId){
                             let folderData = await this._personalPageVaultPhotosModel.findOne({
@@ -168,17 +180,7 @@ export class personalPageVaultService extends baseService {
                             });
                         }
 
-                        await this._photoModel.update(
-                            { isUploadedToBackblaze: true },
-                            {
-                                where: {
-                                    id: { 
-                                        [Op.in]: photoIds 
-                                    }
-                                }
-                            }
-                        );
-
+                      
                         global.appLogger.info(`[End] Successfully Uploaded To BackBlaze By BatchId ${batchId} while batch is already confirmed`); 
 
                         await this.UpdatePhotoVaultLogs({
@@ -206,7 +208,8 @@ export class personalPageVaultService extends baseService {
                                 let userId = batchData.dataValues.user_id;
                                 let folderId = batchData.dataValues.folder_id;
                                 
-                                if(batchData && batchData.dataValues.is_confirmed){   
+                                if(batchData && batchData.dataValues.is_confirmed){ 
+
                                     if(folderId){
                                         await this._personalPageVaultPhotosModel.update({
                                             folder_id: folderId,
@@ -231,9 +234,8 @@ export class personalPageVaultService extends baseService {
                                         global.appLogger.info(`Start Uploading ${pendingbackBlazePhotos.length}  Pending BackBlaze Photos for BatchId ${batchId}`
                                         );
 
-                                        await uploadPhoto.uploadS3PhotosToVault(pendingbackBlazePhotos, userId, pendingbackBlazePhotos[0]['folder_id']);
-                                        const photoUrls = pendingbackBlazePhotos.map(p => p.photo_url);
-                                        await this._photoModel.update(
+                                     const photoUrls = pendingbackBlazePhotos.map(p => p.photo_url);
+                                          await this._photoModel.update(
                                             { isUploadedToBackblaze: true },
                                             {
                                                 where: {
@@ -243,7 +245,10 @@ export class personalPageVaultService extends baseService {
                                                 }
                                             }
                                         );
-                                        
+
+                                        await uploadPhoto.uploadS3PhotosToVault(pendingbackBlazePhotos, userId, pendingbackBlazePhotos[0]['folder_id']);
+                                      
+                                      
                                         
                                         let userData = await this._userModel.findOne({
                                             where:{
@@ -733,9 +738,7 @@ export class personalPageVaultService extends baseService {
                     },
                 });
 
-                
-
-
+ 
                 await this._personalPageVaultPhotosModel.update({
                     folder_id: folderId,
                 }, {
@@ -753,6 +756,8 @@ export class personalPageVaultService extends baseService {
                         batch_id: batchId,
                     }
                 });
+
+                
 
             await this._photoVaultLogsModel.create({
                 user_id: userId,
@@ -776,10 +781,7 @@ export class personalPageVaultService extends baseService {
                         raw: true
                     });
 
-                    if(userPhotos.length > 0 ){
-                        global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
-                        await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
-                        
+                    if(userPhotos.length > 0 ){                       
                         const photoUrls = userPhotos.map(p => p.photo_url);                
                         await this._photoModel.update(
                             { isUploadedToBackblaze: true },
@@ -790,7 +792,12 @@ export class personalPageVaultService extends baseService {
                                     }
                                 }
                             }
-                        );                                                           
+                        );         
+
+
+                        global.appLogger.info(`\n Start Uploading S3 Photos to BackBlaze inside folder ${folderId} for batch ${batchId}`);
+                        await uploadPhoto.uploadS3PhotosToVault(userPhotos, userId, folderId);
+                                                                       
 
                         let userData = await this._userModel.findOne({
                             where:{
