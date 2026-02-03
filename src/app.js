@@ -447,7 +447,7 @@ class App {
                             where:{
                                 email
                             },
-                            attributes:['id']
+                            attributes:['id', 'member_id']
                         });
                     
                         await ReportPaymentsModel.create({
@@ -457,6 +457,10 @@ class App {
                             isPaid: true,
                             subscriptionStatus: 'active'
                         });
+
+
+                        const secretKey = await getSecrets();
+                        await manageTags(userData['member_id'], secretKey.listId, 'AI_Report_One_Off_Purchase', 'active');
 
                         paymentLogger.info({
                             message: `One-time payment success for User ${userData['id']}`,
