@@ -490,12 +490,26 @@ export class notificationService extends baseService {
                                     });       
 
                                     
-
-                                    if(user && user.dataValues.notifications && notificationId){
+                                    
+                                    if (user && user.dataValues.notifications) {
                                         const RegularNotificationObj = user.dataValues.notifications.find(n => n.notification_type === 'regular');
                                         let RegularNotification = RegularNotificationObj?.regular_notifications;
                                         if(RegularNotification){
-                                            const regularNotification = RegularNotification.find(n => n.id === notificationId);
+                                            let regularNotification;
+                                            if (notificationId) {
+                                                regularNotification = RegularNotification.find(n => n.id === notificationId);
+                                            }
+                                            
+
+                                            if (!regularNotification && payload.photo_id) {
+                                                regularNotification = RegularNotification.find(n =>
+                                                    n.message?.photo_id === payload.photo_id &&
+                                                    n.message?.sender_id === payload.receiver_id &&
+                                                    n.message?.receiver_id === payload.sender_id &&
+                                                    n.notification_type === 'follower_in_weekly_top_ten'
+                                                );
+                                            }
+
                                             if(regularNotification){
                                                 if(payload.notification_type == 'congratulate_weekly_toptenuser'){
                                                     regularNotification.message.isCongratulateTopTenUser = true;
