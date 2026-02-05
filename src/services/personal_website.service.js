@@ -1140,15 +1140,14 @@ export class personalWebsiteService extends baseService {
                         body:`<p>Hi ${photoContestMemberName[0]} -
                         <br><br> It's Ken-Bot (like Ken, but a bot 🤖). 
                         <br><br> Someone just sent you a message through the contact form on your
-                        <a href="${isSite?.['dataValues']?.['website_url']}"> Photo Contest personal photography website</a>
+                        <a href="${isSite?.['dataValues']?.['website_url']}"> Photo Contest personal photography website</a>.
                         <br><br> Their message is below.
                         <br><br>Happy day!
-                        <br><br>:-) Ken-Bot (like Ken, but a bot 🤖)
-                        <br><br>Photo Contest
+                        :-) Ken-Bot (like Ken, but a bot 🤖)
+                        Photo Contest
                         <br><br> P.S. Reply directly to the person reaching out to you, not this email address. 
                         Of course if you have any problems, just reply to this email so we can look into it.
-                        <br><br> 
-                        <br><br> From: ${req.body.name}
+                        <br> From: ${req.body.name}
                         <br> Email Address for reply: ${req.body.email}
                         <br><br> Message: ${req.body.message}
                         </p>`
