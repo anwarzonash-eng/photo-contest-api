@@ -1143,11 +1143,11 @@ export class personalWebsiteService extends baseService {
                         <a href="${isSite?.['dataValues']?.['website_url']}"> Photo Contest personal photography website</a>.
                         <br><br> Their message is below.
                         <br><br>Happy day!
-                        :-) Ken-Bot (like Ken, but a bot 🤖)
-                        Photo Contest
+                        <br>:-) Ken-Bot (like Ken, but a bot 🤖)
+                        <br>Photo Contest
                         <br><br> P.S. Reply directly to the person reaching out to you, not this email address. 
                         Of course if you have any problems, just reply to this email so we can look into it.
-                        <br> From: ${req.body.name}
+                        <br><br> From: ${req.body.name}
                         <br> Email Address for reply: ${req.body.email}
                         <br><br> Message: ${req.body.message}
                         </p>`
