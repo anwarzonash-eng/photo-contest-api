@@ -1140,7 +1140,7 @@ export class personalWebsiteService extends baseService {
                         body:`<p>Hi ${photoContestMemberName[0]} -
                         <br><br> It's Ken-Bot (like Ken, but a bot 🤖). 
                         <br><br> Someone just sent you a message through the contact form on your
-                        <a href="${isSite?.['dataValues']?.['website_url']}">${isSite?.['dataValues']?.['website_url']}</a>
+                        <a href="${isSite?.['dataValues']?.['website_url']}"> Photo Contest personal photography website</a>
                         <br><br> Their message is below.
                         <br><br>Happy day!
                         <br><br>:-) Ken-Bot (like Ken, but a bot 🤖)
