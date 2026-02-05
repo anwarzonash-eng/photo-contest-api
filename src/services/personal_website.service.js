@@ -1114,21 +1114,18 @@ export class personalWebsiteService extends baseService {
                let photoContestMemberName = receiverData?.['dataValues']?.['name'].split(' ');
                const senderEmailTemplate = {
                       from_email:'support@example.com', 
-                      from_name: "Photo Contest", 
+                      from_name: "[The Photo Contest]", 
                       to_email: req.body.email, 
-                      subject:`Thanks for your message to ${photoContestMemberName[0]}.`, 
+                      subject:`Thanks For Your Message to ${photoContestMemberName[0]}.`, 
                       body:`
-                        <!-- Preview text (hidden in the email body but shows in inbox preview) -->
-                        <div style="display:none; max-height:0px; overflow:hidden; font-size:0; line-height:0; color:#ffffff; opacity:0;">
-                            We've included your email for reply.
-                        </div>
-
-
                       <p>Hi there, 
-                      <br><br> Thanks for your message to ${receiverData?.['dataValues']?.['name']} — we've received it and passed it along. 
-                      The email address you submitted is included so they can reply to you directly.
-                      <br><br> All set! Your note is on its way. 😎
-                      <br><br> — <a href="${Env.Base_Url}"> Photo Contest </a>
+                      <br><br> Just a quick note to let you know that we sent your message to ${receiverData?.['dataValues']?.['name']} 
+                      <br><br> The email address you submitted is included so they can reply to you directly.
+                      <br><br> If we can answer any questions, please reply to this email.
+                      <br><br> Best,
+                      <br><br> Ken-Bot (I'm a bot, but I'm a darn good one!)
+                      <br><br> BTW: Get your own, free personal photography website at the
+                        <a href="${Env.Base_Url}"> Photo Contest </a> while you wait!
                       </p>`
                 }
                 await sendEmail(senderEmailTemplate);
@@ -1136,23 +1133,22 @@ export class personalWebsiteService extends baseService {
                 if(receiverData){
                     const receiverEmailTemplate = {
                         from_email:'support@example.com', 
-                        from_name: "Photo Contest Messages", 
+                        from_name: "[Ken-Bot | Photo Contest]", 
                         to_email: `${receiverData?.['dataValues']?.['email']}`,
                         to_name: `${receiverData?.['dataValues']?.['name']}`, 
-                        subject:`New message from your photo website!`, 
+                        subject:`Someone Just Emailed You From Your Website`, 
                         body:`<p>Hi ${photoContestMemberName[0]} -
-                        <br><br> It's Ken-Bot (like Ken, but a bot 🤖). Someone just reached out through 
-                        the contact form on your Photo Contest ${isSite?.['dataValues']?.['website_url']}
-                        <br><br> See their message below ⬇️.
-                        <br><br> Thanks!
-                        <br> :-) Ken-Bot (like Ken, but a bot 🤖)
-                        <br><br> Photo Contest
-                        <br><br>
+                        <br><br> It's Ken-Bot (like Ken, but a bot 🤖). 
+                        Someone just sent you a message through the contact form on your ${isSite?.['dataValues']?.['website_url']}
+                        <br><br> Their message is below.
+                        <br><br>Happy day!
+                        <br><br>:-) Ken-Bot (like Ken, but a bot 🤖)
+                        <br><br>Photo Contest
                         <br><br> P.S. Reply directly to the person reaching out to you, not this email address. 
-                            Of course if you have any problems, just reply to this email so we can look into it.
-                        <br><br>
-                        <br><br> ---
-                        <br><br> Name: ${req.body.name}
+                        Of course if you have any problems, just reply to this email so we can look into it.
+                        <br><br> --- YOUR MESSAGE ---
+                        <br><br> 
+                        <br><br> From: ${req.body.name}
                         <br> Email Address for reply: ${req.body.email}
                         <br><br> Message: ${req.body.message}
                         </p>`
