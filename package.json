@@ -1,7 +1,9 @@
 {
-  "name": "photo-contest",
+  "name": "photo-contest-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "REST API for a photo contest platform: contests, uploads, voting, memberships, payments and email",
+  "author": "Zonash",
+  "license": "MIT",
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
@@ -13,8 +15,6 @@
     "start": "node dist/index.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.529.1",
     "@mailchimp/mailchimp_marketing": "^3.0.80",

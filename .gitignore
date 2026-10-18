@@ -12,3 +12,13 @@
 
 
 /.vscode
+
+# environment files (never commit real credentials)
+.env
+.env.*
+!.env.example
+
+# runtime logs
+src/logs/
+*.log
+*-audit.json
