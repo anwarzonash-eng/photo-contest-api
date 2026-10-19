@@ -5,8 +5,8 @@ import { UserModel, NotificationModel, PhotoModel, GalleryPhotoModel, PhotoClick
      PersonalPhotoUpvoteModel, PrevTownHallModel, MonthlyTownHallModel, PersonalPageFollowerModel, 
      PersonalPageFollowEventModel, PersonalPageFollowRelationModel, FoldersModel, PersonalPageVaultPhotosModel,
      PhotoVaultLogsModel, PhotoVaultBatchModel, AdminNotificationTemplateModel, ActivityCalloutModel, 
-     UserNotificationStatusModel, TempUserActionsModel, AiReportsModel, ReportPaymentsModel, ChatgptPromptsModel,
-     BenchmarkPhotosModel, BiasesModel, WeeklyHuntedPhotosRatingModel, WeeklyTopRankedPhotosModel, PersonalGalleriesModel
+     UserNotificationStatusModel, TempUserActionsModel, 
+     PersonalGalleriesModel
 } from "../models";
 
 class baseService {    
@@ -41,13 +41,6 @@ class baseService {
     _activityCalloutModel;
     _userNotificationStatusModel;
     _tempUserActionsModel;
-    _AiReportsModel;
-    _reportPaymentsModel;
-    _chatgptPromptsModel;
-    _benchmarkPhotosModel;
-    _biasesModel;
-    _weeklyHuntedPhotosRatingModel;
-    _weeklyTopRankedPhotosModel;
     _personalGalleriesModel;
 
 
@@ -83,13 +76,6 @@ class baseService {
         this._activityCalloutModel = ActivityCalloutModel;
         this._userNotificationStatusModel = UserNotificationStatusModel;   
         this._tempUserActionsModel = TempUserActionsModel; 
-        this._AiReportsModel = AiReportsModel;
-        this._reportPaymentsModel = ReportPaymentsModel;
-        this._chatgptPromptsModel = ChatgptPromptsModel;
-        this._benchmarkPhotosModel = BenchmarkPhotosModel;
-        this._biasesModel = BiasesModel;
-        this._weeklyHuntedPhotosRatingModel = WeeklyHuntedPhotosRatingModel;
-        this._weeklyTopRankedPhotosModel = WeeklyTopRankedPhotosModel;
         this._personalGalleriesModel = PersonalGalleriesModel;
     }
 }

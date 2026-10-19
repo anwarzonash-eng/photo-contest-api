@@ -32,9 +32,6 @@ class baseController {
     _townhallService;
     _personalPageFollowersService;
     _personalPageVaultService;
-    _aiReportService;
-    _chatgptService;
-    _photosRankingService;
 
 
 
@@ -56,9 +53,6 @@ class baseController {
         this._townhallService = new townhallService()
         this._personalPageFollowersService = new personalPageFollowersService()
         this._personalPageVaultService = new personalPageVaultService()
-        this._aiReportService = new AIReportsService()
-        this._chatgptService = new chatgptService()
-        this._photosRankingService = new photosRankingService()
         
         this._responseTemplate = responseTemplate;
 

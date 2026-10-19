@@ -33,5 +33,4 @@ export default {
     BackBlaze_B2_Key: process.env.BackBlaze_B2_Key,
     BackBlaze_App_Key: process.env.BackBlaze_App_Key,
     BackBlaze_Bucket: process.env.BackBlaze_Bucket,
-    report_priceId: process.env.report_priceId
 }

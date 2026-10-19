@@ -2,8 +2,8 @@ import bcrypt from 'bcrypt'
 const CryptoJS = require("crypto-js");
 import { sequelize } from './database';
 import { HuntScoreModel, UserModel, GalleryPhotoModel, PersonalWebsiteModel, PersonalPhotoModel,
-        AdminNotificationTemplateModel, UserNotificationStatusModel, ChatgptPromptsModel, 
-        PhotoModel, BiasesModel, WeeklyHuntedPhotosRatingModel, WeeklyTopRankedPhotosModel,
+        AdminNotificationTemplateModel, UserNotificationStatusModel,
+        PhotoModel, 
         VoteModel
     } 
 from '../models';
@@ -824,6 +824,3 @@ export async function getActiveAdminNotifications(userId, offset = 0, limit = 10
         throw err;
     }
 }
-
-
-

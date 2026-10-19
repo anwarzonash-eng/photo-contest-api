@@ -1,6 +1,6 @@
 # Photo Contest API
 
-The backend of a photo-contest community platform. Photographers upload photos to weekly and themed contests, vote and comment, follow each other and earn badges, and subscribe to paid memberships. The API handles users and authentication, contests and events, photo uploads and storage, voting and rankings, Stripe subscriptions and one-off purchases, e-mail through Mailchimp, real-time updates over Socket.IO and AI-assisted photo feedback.
+The backend of a photo-contest community platform. Photographers upload photos to weekly and themed contests, vote and comment, follow each other and earn badges, and subscribe to paid memberships. The API handles users and authentication, contests and events, photo uploads and storage, voting and rankings, Stripe subscriptions and one-off purchases, e-mail through Mailchimp, and real-time updates over Socket.IO.
 
 It is paired with [photo-contest-cms](https://github.com/anwarzonash-eng/photo-contest-cms), the admin panel used by the site owner.
 
@@ -10,7 +10,7 @@ It is paired with [photo-contest-cms](https://github.com/anwarzonash-eng/photo-c
 - PostgreSQL with Sequelize, Socket.IO
 - Stripe (payments and webhooks), Mailchimp (marketing + transactional)
 - Cloudinary and Backblaze B2 for image storage, AWS Secrets Manager (optional)
-- OpenAI API, `node-cron` scheduled jobs, `winston` logging
+- `node-cron` scheduled jobs, `winston` logging
 
 ## Getting started
 

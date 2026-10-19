@@ -10,27 +10,3 @@ export class checkoutSessionDto {
     @IsOptional()
     cancelUrl;
 }
-
-
-export class reportCheckoutSessionDto{
-    @IsNotEmpty()
-    @IsEmail()
-    @IsString()
-    email;
-
-
-    @IsNotEmpty()
-    @IsString()
-    photoId;
-
-
-    @IsString()
-    @IsOptional()
-    successUrl;
-
-
-    @IsString()
-    @IsOptional()
-    cancelUrl;
-}
-

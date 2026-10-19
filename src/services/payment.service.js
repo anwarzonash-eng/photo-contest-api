@@ -56,39 +56,4 @@ export class paymentService extends baseService {
 
        
     }
-
-
-    async createReportCheckoutSession(req){
-        try{
-               const stripe = Stripe(Env.stripeSecretKey);
-                let { photoId, email, successUrl, cancelUrl } = req.body;
-                const customerEmail = email !== '' ? { customer_email: email } : {};
-                
-                const session = await stripe.checkout.sessions.create({
-                    payment_method_types: ['card', 'link'],
-                    ...customerEmail,
-                    line_items: [
-                        {
-                            price: Env.report_priceId, 
-                            quantity: 1,
-                        },
-                    ],
-                    mode: 'payment',
-                    payment_intent_data: {
-                        metadata: {
-                            email,
-                            photoId: photoId,
-                            payment_mode: 'one_time'
-                        },
-                    },
-                    success_url: `${Env.Base_Url}${successUrl}`,
-                    cancel_url: `${Env.Base_Url}${cancelUrl}`,
-                });
-
-                return { id: session.id }; 
-        }
-        catch(err){
-            return { status: 'Error', message: err.message };
-        }
-    }
 }
